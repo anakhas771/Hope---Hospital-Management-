@@ -1,0 +1,39 @@
+# accounts/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    RegisterView,
+    LoginView,
+    DepartmentViewSet,
+    DoctorViewSet,
+    AppointmentViewSet,
+    UserViewSet,
+    VerifyEmailView,
+    reset_password,
+    change_password,
+    admin_stats,
+    AdminLoginView
+)
+
+# Router for viewsets
+router = DefaultRouter()
+router.register(r"users", UserViewSet)
+router.register(r"departments", DepartmentViewSet)
+router.register(r"doctors", DoctorViewSet)
+router.register(r"appointments", AppointmentViewSet)
+
+urlpatterns = [
+    # Authentication
+    path("auth/register/", RegisterView.as_view(), name="register"),
+    path("auth/login/", LoginView.as_view(), name="login"),
+    path("auth/reset-password/", reset_password, name="reset-password"),
+    path("auth/change-password/", change_password, name="change-password"),
+    path("auth/verify-email/<int:user_id>/", VerifyEmailView.as_view(), name="verify-email"),
+
+    # Admin stats
+    path("admin/stats/", admin_stats, name="admin-stats"),
+    path("auth/admin-login/", AdminLoginView.as_view(), name="admin-login"),
+
+    # Include all router paths
+    path("", include(router.urls)),
+]

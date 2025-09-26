@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* Define your fonts in the theme */
+@theme {
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Poppins", sans-serif;
+}
+
+/* Custom styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Smooth width transition */
+.flex > .transition-all {
+  transition-property: width, min-width, max-width;
+}
