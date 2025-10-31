@@ -70,4 +70,4 @@ Version Control: Git & GitHub
 ![Signin Screenshot](assets/Signin.png)
 
 ### Admin
-![Admin Screenshot](assets/Admin.png)
+![Admin Screenshot](assets/admin.png)
