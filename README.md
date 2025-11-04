@@ -1,73 +1,90 @@
-
-# Hope - Hospital Management System 
-
-Built a full-stack hospital management system using React for the frontend and Django REST Framework for the backend.
- Developed a custom admin dashboard with interactive charts and analytics to monitor appointments, payments, and doctor
- activity.
- Implemented secure email-based authentication with verification and password reset functionality.
- Integrated PayPal payment gateway to enable safe and seamless online payments for consultations.
- Created a dynamic doctors page displaying profiles, specialties, and available time slots fetched from the backend API.
-
-## Used By
-
-This project is used by the following organizations and teams:
-
- General Hospital – for managing appointments, doctor schedules, and patient records.
-
- Clinics – for handling online consultations and secure payment processing.
-
- Diagnostics – for tracking doctor activity and analytics through the admin dashboard.
-
- Health Center – for managing patient authentication and report delivery.
+# 🏥 Hope – Hospital Management System
 
 
-## Tech Stack
+A modern full-stack hospital management platform built with **React** and **Django REST Framework**, providing secure authentication, doctor appointment booking, online payments, and an interactive admin dashboard with real-time analytics.
 
-Frontend: React, React Router, Axios, Tailwind CSS
+---
 
-Backend: Django, Django REST Framework
+## 🛠 Tech Stack
 
-Database: PostgreSQL 
+<p>
+  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white" />&nbsp;
+  <img src="https://img.shields.io/badge/CSS-Tailwind-38B2AC?logo=tailwindcss" />&nbsp;
+  <img src="https://img.shields.io/badge/Backend-Django%20REST%20Framework-092E20?logo=django" />&nbsp;
+  <img src="https://img.shields.io/badge/DB-PostgreSQL-336791?logo=postgresql" />&nbsp;
+  <img src="https://img.shields.io/badge/Auth-JWT-000000?logo=json-web-tokens" />&nbsp;
+  <img src="https://img.shields.io/badge/Payments-PayPal-00457C?logo=paypal" />
+</p>
 
-Authentication & Security: JWT, SMTP (for email verification and password reset)
+---
 
-Payments: PayPal REST API
+## 🔷 Features
 
-Analytics & Charts: Recharts
+<div style="display:flex;gap:18px;flex-wrap:wrap">
+  
+**🧾 Authentication**  
+Secure registration, email verification, password resets (JWT + SMTP).
 
-Version Control: Git & GitHub
+**📅 Appointment Management**  
+Real-time doctor availability, time-slot booking, reschedule & cancel.
 
-## 🎥 Demo
+**💳 Payments**  
+PayPal REST API integration for secure payments and order confirmation.
+
+**📊 Admin Dashboard**  
+Interactive charts and KPIs for appointments, revenue, and doctor activity.
+
+**🧰 Doctor Profiles**  
+Specialty, experience, availability, ratings, and contact details.
+
+**📥 Notifications**  
+Email notifications for confirmations and reminders.
+
+</div>
+
+---
+
+## 🏢 Used By
+
+| Organization | Purpose |
+|--------------|---------|
+| 🏥 **General Hospitals** | Manage appointments, patient records, doctor schedules |
+| 🩺 **Clinics** | Enable online consultation booking & payments |
+| 🧪 **Diagnostics Centers** | Track doctor activity & financial analytics |
+| 🏥 **Health Centers** | Offer secure patient login + digital report delivery |
+
+---
+
+## 🎥 Live Demo
 
 ![App Demo](assets/demo.gif)
 
 ---
 
-## Screenshots
+## 🖼️ Screenshots
 
-### Homepage
-![Homepage Screenshot](assets/hero.png)
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="/assets/hero.png" width="320" alt="Homepage" /></td>
+      <td><img src="/assets/Departments.png" width="320" alt="Departments" /></td>
+    </tr>
+    <tr>
+      <td><img src="/assets/DoctorsCard.png" width="320" alt="Doctors" /></td>
+      <td><img src="/assets/AppointmentPage.png" width="320" alt="Appointment" /></td>
+    </tr>
+    <tr>
+      <td><img src="/assets/Payment.png" width="320" alt="Payment" /></td>
+      <td><img src="/assets/Dashboard.png" width="320" alt="Dashboard" /></td>
+    </tr>
+    <tr>
+      <td><img src="/assets/Login.png" width="320" alt="Login" /></td>
+      <td><img src="/assets/Signin.png" width="320" alt="Signup" /></td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center"><img src="/assets/admin.png" width="650" alt="Admin Panel" /></td>
+    </tr>
+  </table>
+</div>
 
-### Departments
-![Department Screenshot](assets/Departments.png)
-
-### DoctorsCard
-![DoctorsCard Screenshot](assets/DoctorsCard.png)
-
-### AppointmentPage
-![AppointmentPage Screenshot](assets/AppointmentPage.png)
-
-### AppointmentPage
-![Payment Screenshot](assets/Payment.png)
-
-### Dashboard
-![Dashboard Screenshot](assets/Dashboard.png)
-
-### Login
-![Login Screenshot](assets/Login.png)
-
-### Signin
-![Signin Screenshot](assets/Signin.png)
-
-### Admin
-![Admin Screenshot](assets/admin.png)
+---
