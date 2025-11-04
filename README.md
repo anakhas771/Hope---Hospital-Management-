@@ -61,7 +61,7 @@ Version Control: Git & GitHub
 ![Payment Screenshot](assets/Payment.png)
 
 ### Dashboard
-![Dashboard Screenshot](assets/dashboard.png)
+![Dashboard Screenshot](assets/Dashboard.png)
 
 ### Login
 ![Login Screenshot](assets/Login.png)
