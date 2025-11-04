@@ -12,13 +12,13 @@ Built a full-stack hospital management system using React for the frontend and D
 
 This project is used by the following organizations and teams:
 
-Aetheria General Hospital – for managing appointments, doctor schedules, and patient records.
+ General Hospital – for managing appointments, doctor schedules, and patient records.
 
-Medicare Plus Clinics – for handling online consultations and secure payment processing.
+ Clinics – for handling online consultations and secure payment processing.
 
-CareWell Diagnostics – for tracking doctor activity and analytics through the admin dashboard.
+ Diagnostics – for tracking doctor activity and analytics through the admin dashboard.
 
-Nova Health Center – for managing patient authentication and report delivery.
+ Health Center – for managing patient authentication and report delivery.
 
 
 ## Tech Stack
