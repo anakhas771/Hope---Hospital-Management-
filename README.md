@@ -15,7 +15,6 @@ A modern full-stack hospital management platform built with **React** and **Djan
   <img src="https://img.shields.io/badge/Auth-JWT-000000?logo=json-web-tokens" />&nbsp;
   <img src="https://img.shields.io/badge/Payments-PayPal-00457C?logo=paypal" />
 </p>
-
 ---
 
 ## 🔷 Features
