@@ -3,8 +3,6 @@
 
 A modern full-stack hospital management platform built with **React** and **Django REST Framework**, providing secure authentication, doctor appointment booking, online payments, and an interactive admin dashboard with real-time analytics.
 
-
-
 ## 🛠 Tech Stack
 
 <p align="left">
@@ -37,7 +35,7 @@ Email notifications for confirmations and reminders.
 
 </div>
 
----
+
 
 ## 🏢 Used By
 
@@ -48,13 +46,13 @@ Email notifications for confirmations and reminders.
 | 🧪 **Diagnostics Centers** | Track doctor activity & financial analytics |
 | 🏥 **Health Centers** | Offer secure patient login + digital report delivery |
 
----
+
 
 ## 🎥 Live Demo
 
 ![App Demo](assets/demo.gif)
 
----
+
 
 ## 🖼️ Screenshots
 
