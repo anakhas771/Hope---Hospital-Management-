@@ -3,19 +3,15 @@
 
 A modern full-stack hospital management platform built with **React** and **Django REST Framework**, providing secure authentication, doctor appointment booking, online payments, and an interactive admin dashboard with real-time analytics.
 
----
+
 
 ## 🛠 Tech Stack
 
-<p>
-  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white" />&nbsp;
-  <img src="https://img.shields.io/badge/CSS-Tailwind-38B2AC?logo=tailwindcss" />&nbsp;
-  <img src="https://img.shields.io/badge/Backend-Django%20REST%20Framework-092E20?logo=django" />&nbsp;
-  <img src="https://img.shields.io/badge/DB-PostgreSQL-336791?logo=postgresql" />&nbsp;
-  <img src="https://img.shields.io/badge/Auth-JWT-000000?logo=json-web-tokens" />&nbsp;
-  <img src="https://img.shields.io/badge/Payments-PayPal-00457C?logo=paypal" />
+<p align="left">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=react,javascript,python,django,nodejs,html,css,tailwind,redux,postgresql,git,vscode,postman,&perline=14" />
+  </a>
 </p>
----
 
 ## 🔷 Features
 
@@ -85,5 +81,3 @@ Email notifications for confirmations and reminders.
     </tr>
   </table>
 </div>
-
----
