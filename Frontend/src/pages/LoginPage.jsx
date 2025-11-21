@@ -41,7 +41,7 @@ const LoginPage = () => {
 
     if (res.ok) {
       const userWithToken = { ...data.user, token: data.access };
-localStorage.setItem("user", JSON.stringify(userWithToken));
+      localStorage.setItem("user", JSON.stringify(userWithToken));
 
       toast.success("✅ Login successful!");
       navigate("/dashboard");
