@@ -95,7 +95,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 AUTH_USER_MODEL = "accounts.User"
 
 # -------------------- CORS --------------------
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all for development
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = []
 
 # -------------------- REST FRAMEWORK --------------------
 REST_FRAMEWORK = {
@@ -136,3 +137,12 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "DEBUG"},
 }
+
+
+# if running on Render, use deployment_settings
+if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER") == "1":
+    try:
+        from .deployment_settings import *   # noqa: F401,F403
+    except Exception:
+        pass
+
