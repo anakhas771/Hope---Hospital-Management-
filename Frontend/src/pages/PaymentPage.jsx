@@ -4,7 +4,7 @@ import { PayPalButtons } from "@paypal/react-paypal-js";
 import Lottie from "lottie-react";
 import toast, { Toaster } from "react-hot-toast";
 
-import paymentAnimation from "../assets/payments.json";
+import paymentAnimation from "../assets/Payments.json";
 import confettiAnimation from "../assets/confetti.json";
 import { verifyPayment } from "../services/appointments";
 
