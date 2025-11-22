@@ -18,7 +18,7 @@ const ForgotPasswordPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("https://hope-backend-mvos.onrender.com/accounts/auth/reset-password/", {
+      const res = await fetch("/auth/reset-password/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

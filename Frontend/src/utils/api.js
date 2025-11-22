@@ -1,21 +1,24 @@
 // FINAL API BASE URL CONFIG
 export const API_URL =
-  import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com/accounts";
+  import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com";
 
 // Normal JSON fetch
-export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+export async function apiFetch(endpoint, options = {}) {
+  const token = localStorage.getItem("access");
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    method,
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  const res = await fetch(`${API_URL}/accounts${endpoint}`, {
+    ...options,
     headers,
-    body: body ? JSON.stringify(body) : null,
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.detail || error.error || "API request failed");
+    throw new Error(`API Error: ${res.status}`);
   }
 
   return res.json();
