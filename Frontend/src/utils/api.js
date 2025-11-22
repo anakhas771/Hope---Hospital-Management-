@@ -1,9 +1,7 @@
 // src/lib/api.js
 
 // BASE URL CONFIG
-export const API_URL =
-  import.meta.env.VITE_API_URL ;
-
+export const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, "");
 // -----------------------------
 // Helper: Safe JSON parse
 // -----------------------------
