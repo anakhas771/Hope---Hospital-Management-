@@ -146,3 +146,5 @@ if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or 
     except Exception:
         pass
 
+
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")

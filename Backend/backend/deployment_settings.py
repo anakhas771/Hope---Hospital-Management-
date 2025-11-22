@@ -32,4 +32,5 @@ DATABASES = {
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://hope-frontend-9jr0.onrender.com",
+     "http://localhost:5173",
 ]

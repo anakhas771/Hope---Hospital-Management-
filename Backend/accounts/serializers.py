@@ -179,7 +179,8 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.save()
 
         # Build reset link
-        reset_link = f"http://localhost:5173/change-password/{token}"
+        reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
+
 
         # Send email
         send_mail(
