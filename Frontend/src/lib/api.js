@@ -1,9 +1,16 @@
-//lib/api.js
+// lib/api.js
 
+// -------------------------------------------
+// BASE API URL
+// -------------------------------------------
 export const API_URL =
   import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com";
 
-// Normal JSON fetch
+
+// ---------------------------------------------------
+// NORMAL USER API FETCH (for frontend)
+// Everything goes through /accounts/ correctly
+// ---------------------------------------------------
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("access");
 
@@ -13,29 +20,39 @@ export async function apiFetch(endpoint, options = {}) {
     ...options.headers,
   };
 
-  const res = await fetch(`${API_URL}/accounts${endpoint}`, {
+  // FIXED: Correct URL format → API_URL + "/accounts" + endpoint
+  const url = `${API_URL}/accounts${endpoint}`;
+
+  const res = await fetch(url, {
     ...options,
     headers,
   });
 
   if (!res.ok) {
-    throw new Error(`API Error: ${res.status}`);
+    const errText = await res.text().catch(() => "");
+    throw new Error(errText || `API Error: ${res.status}`);
   }
 
   return res.json();
 }
 
 
-// Admin JSON fetch with automatic redirect if not authenticated
+// ---------------------------------------------------
+// ADMIN API FETCH (JWT secured)
+// Used for dashboard login + CRUD
+// ---------------------------------------------------
 export async function adminFetch(endpoint, method = "GET", body = null) {
   const token = localStorage.getItem("admin_access_token");
+
   if (!token) {
-    // Redirect to admin login if token is missing
+    // If missing → redirect admin
     window.location.href = "/admin-login";
     return;
   }
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  const url = `${API_URL}/accounts${endpoint}`;
+
+  const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -45,27 +62,40 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   });
 
   if (!res.ok) {
+    // auto logout on token expiry
     if (res.status === 401) {
       localStorage.removeItem("admin_access_token");
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
+
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || "API error");
+    throw new Error(err.detail || err.error || `API error ${res.status}`);
   }
 
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
 
-// Admin fetch for FormData (file uploads)
+
+// ---------------------------------------------------
+// ADMIN FORM DATA FETCH (Uploads)
+// ---------------------------------------------------
 export async function adminFetchForm(endpoint, method = "POST", formData) {
   const token = localStorage.getItem("admin_access_token");
-  if (!token) window.location.href = "/admin-login";
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  if (!token) {
+    window.location.href = "/admin-login";
+    return;
+  }
+
+  const url = `${API_URL}/accounts${endpoint}`;
+
+  const res = await fetch(url, {
     method,
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`, // NO content-type for FormData
+    },
     body: formData,
   });
 
@@ -75,8 +105,9 @@ export async function adminFetchForm(endpoint, method = "POST", formData) {
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
+
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || "API error");
+    throw new Error(err.detail || err.error || "Form upload error");
   }
 
   const text = await res.text();
