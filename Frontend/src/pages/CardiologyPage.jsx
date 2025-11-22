@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+/* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
 import DoctorCard from "../components/DoctorCard";
 import PageSection from "../components/PageSection";
