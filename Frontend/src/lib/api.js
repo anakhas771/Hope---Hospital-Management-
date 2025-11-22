@@ -4,7 +4,7 @@
 // BASE API URL
 // -------------------------------------------
 export const API_URL =
-  import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com";
+  import.meta.env.VITE_API_URL ;
 
 
 // ---------------------------------------------------
