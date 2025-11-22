@@ -38,13 +38,3 @@ CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOW_ALL_ORIGINS = False
 
 
-# AUTO CREATE SUPERUSER ON DEPLOY (REMOVE AFTER FIRST RUN)
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-if not User.objects.filter(email="admin@hope.com").exists():
-    User.objects.create_superuser(
-        email="admin@hope.com",
-        name="Admin",
-        password="Admin@123"
-    )
