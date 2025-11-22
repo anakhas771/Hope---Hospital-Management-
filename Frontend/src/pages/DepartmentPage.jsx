@@ -1,24 +1,36 @@
+// src/pages/DepartmentsPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import DoctorCard from "../components/DoctorCard";
+import { apiFetch } from "../lib/api";
 
 const DepartmentsPage = () => {
   const { department } = useParams();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await fetch(`https://hope-backend-mvos.onrender.com/api/doctors/?department=${department}`);
-        const data = await res.json();
-        setDoctors(data);
+        setLoading(true);
+        setError(null);
+
+        // Fetch doctors filtered by department from backend
+        const data = await apiFetch(`/doctors/?department=${department}`);
+        if (Array.isArray(data)) {
+          setDoctors(data);
+        } else {
+          setDoctors([]);
+        }
       } catch (err) {
         console.error("Error fetching doctors:", err);
+        setError(err.message || "Failed to fetch doctors");
       } finally {
         setLoading(false);
       }
     };
+
     fetchDoctors();
   }, [department]);
 
@@ -30,6 +42,8 @@ const DepartmentsPage = () => {
 
       {loading ? (
         <p className="text-center text-gray-300">Loading doctors...</p>
+      ) : error ? (
+        <p className="text-center text-red-400">{error}</p>
       ) : doctors.length ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors.map((doc) => (

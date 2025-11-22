@@ -1,3 +1,4 @@
+// src/pages/EmergencyPage.jsx
 import React, { useEffect, useState } from "react";
 /* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
@@ -10,7 +11,7 @@ const EmergencyPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const departmentName = "Emergency Department";
+  const departmentName = "Emergency"; // Make sure backend department name matches
 
   const services = [
     "Trauma Care",
@@ -24,10 +25,11 @@ const EmergencyPage = () => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await apiFetch(`/doctors/?department=${departmentName}`);
         setDoctors(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching doctors:", err);
         setError(err.message || "Failed to fetch doctors");
       } finally {
         setLoading(false);
@@ -44,7 +46,7 @@ const EmergencyPage = () => {
         transition={{ duration: 0.6 }}
         className="text-center mb-10"
       >
-        <h1 className="text-5xl font-bold mb-4">{departmentName}</h1>
+        <h1 className="text-5xl font-bold mb-4">{departmentName} Department</h1>
         <p className="text-gray-200 max-w-3xl mx-auto">
           24/7 emergency care with expert doctors ready to handle trauma, critical cases, and urgent medical situations.
         </p>

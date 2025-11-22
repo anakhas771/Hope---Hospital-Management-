@@ -1,3 +1,4 @@
+// src/pages/CardiologyPage.jsx
 import React, { useEffect, useState } from "react";
 /* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
@@ -26,16 +27,16 @@ const CardiologyPage = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch doctors for the Cardiology department
+        // Correct backend endpoint
         const data = await apiFetch(`/doctors/?department=${departmentName}`);
-        if (Array.isArray(data)) {
+
+        if (data && Array.isArray(data)) {
           setDoctors(data);
         } else {
           setDoctors([]);
         }
       } catch (err) {
-        console.error("Error fetching doctors:", err);
-        setError(err.message || "Failed to fetch doctors");
+        setError("Failed to fetch doctors");
       } finally {
         setLoading(false);
       }
@@ -46,7 +47,6 @@ const CardiologyPage = () => {
 
   return (
     <PageSection>
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -24 }}
         animate={{ opacity: 1, y: 0 }}

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, X } from "lucide-react";
 import PageSection from "../components/PageSection";
 import toast, { Toaster } from "react-hot-toast";
+import { API_URL } from "../lib/api";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -28,53 +29,48 @@ const LoginPage = () => {
   };
 
   const handleLogin = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await fetch("https://hope-backend-mvos.onrender.com/accounts/auth/login/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData), // email + password
-    });
+    try {
+      const res = await fetch(`${API_URL}/accounts/auth/login/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData), // email + password
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      const userWithToken = { ...data.user, token: data.access };
-      localStorage.setItem("user", JSON.stringify(userWithToken));
+      if (res.ok) {
+        const userWithToken = { ...data.user, token: data.access };
+        localStorage.setItem("user", JSON.stringify(userWithToken));
 
-      toast.success("✅ Login successful!");
-      navigate("/dashboard");
-    } else {
-      toast.error(
-        data.error ||
-        data.detail ||
-        data.non_field_errors?.[0] ||
-        "❌ Invalid credentials"
-      );
+        toast.success("✅ Login successful!");
+        navigate("/dashboard");
+      } else {
+        toast.error(
+          data.error ||
+          data.detail ||
+          data.non_field_errors?.[0] ||
+          "❌ Invalid credentials"
+        );
+      }
+    } catch (err) {
+      console.error("⚠️ Login failed:", err);
+      toast.error("Network error, try again later");
     }
-  } catch (err) {
-    console.error("⚠️ Login failed:", err);
-    toast.error("Network error, try again later");
-  }
-};
-
-
-  const inputVariant = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
   };
+
+  const inputVariant = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
   return (
     <PageSection className="pt-8 md:pt-16 px-6 flex justify-center items-start min-h-screen">
-  <Toaster position="top-center" reverseOrder={false} /> {/* Toast container at top */}
-
-  <motion.div
-    initial={{ opacity: 0, y: 80, scale: 0.9 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ duration: 0.8, ease: "easeOut" }}
-    className="relative bg-white/10 backdrop-blur-lg p-10 rounded-2xl shadow-2xl w-full max-w-md border border-white/20 -mt-26 md:-mt-8"
-  >
+      <Toaster position="top-center" reverseOrder={false} />
+      <motion.div
+        initial={{ opacity: 0, y: 80, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative bg-white/10 backdrop-blur-lg p-10 rounded-2xl shadow-2xl w-full max-w-md -mt-8 md:-mt-8 border border-white/20"
+      >
         <button
           onClick={() => navigate("/")}
           className="absolute top-4 right-4 text-white/70 hover:text-white"
@@ -98,10 +94,7 @@ const LoginPage = () => {
         <motion.form
           initial="hidden"
           animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.1 } },
-          }}
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
           onSubmit={handleLogin}
           className="space-y-5"
         >
@@ -139,10 +132,7 @@ const LoginPage = () => {
 
           <motion.button
             variants={inputVariant}
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 0 25px rgba(14,165,233,0.5)",
-            }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(14,165,233,0.5)" }}
             whileTap={{ scale: 0.95 }}
             type="submit"
             className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-lg shadow-cyan-400/40 transition-all"

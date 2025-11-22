@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { LogIn, X } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 import PageSection from "../components/PageSection";
+import { API_URL } from "../lib/api";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ const ForgotPasswordPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("/auth/reset-password/", {
+      const res = await fetch(`${API_URL}/accounts/auth/reset-password/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -27,7 +28,7 @@ const ForgotPasswordPage = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        const msg = data.email || "Something went wrong";
+        const msg = data.email || data.detail || "Something went wrong";
         toast.error(`❌ ${msg}`);
       } else {
         setSubmitted(true);

@@ -1,5 +1,5 @@
 // src/pages/AppointmentPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -9,24 +9,40 @@ const AppointmentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {
-    id: doctorId,
-    name: doctorName,
-    department,
-    specialization,
-    education,
-    experience,
-    availability,
-    rating,
-    patients_count,
-    profile_image,
-  } = location.state || {};
+  // If no doctor data → redirect back
+  useEffect(() => {
+    if (!location.state) {
+      navigate("/doctors");
+    }
+  }, [location, navigate]);
 
+  // Extract doctor data
+  const doctor = location.state || {};
+
+  const doctorId = doctor.id;
+  const doctorName = doctor.name;
+  const department = doctor.department || doctor.department_name;
+  const specialization = doctor.specialization;
+  const education = doctor.education;
+  const experience = doctor.experience;
+  const availability = doctor.availability;
+  const rating = doctor.rating;
+  const patients_count = doctor.patients_count;
+  const profile_image = doctor.profile_image || doctor.image;
+
+  // Form fields
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState("");
   const [notes, setNotes] = useState("");
 
-  const availableTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+  const availableTimes = [
+    "09:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "02:00 PM",
+    "03:00 PM",
+    "04:00 PM",
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -36,22 +52,29 @@ const AppointmentPage = () => {
       return;
     }
 
-    const rawDate = format(selectedDate, "yyyy-MM-dd"); // backend safe
-    const formattedDate = format(selectedDate, "eee, dd MMM yyyy"); // frontend display
+    const backendDate = format(selectedDate, "yyyy-MM-dd");
+    const displayDate = format(selectedDate, "EEE, dd MMM yyyy");
 
     navigate("/payment", {
       state: {
-        doctorName,
         doctorId,
-        amount: 500,
-        date: rawDate,
-        time: selectedTime,
-        formattedDate,
-        notes,
+        doctorName,
         department,
+        amount: 500,
+        date: backendDate,
+        time: selectedTime,
+        formattedDate: displayDate,
+        notes,
       },
     });
   };
+
+  // Generate initials if no image
+  const initials =
+    doctorName?.split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "DR";
 
   return (
     <div className="max-w-6xl mx-auto py-20 px-6 grid grid-cols-1 md:grid-cols-2 gap-10 text-white">
@@ -65,11 +88,13 @@ const AppointmentPage = () => {
           />
         ) : (
           <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl font-bold mx-auto mb-4">
-            {doctorName?.split(" ").map((w) => w[0]).join("")}
+            {initials}
           </div>
         )}
+
         <h2 className="text-2xl font-bold text-center">{doctorName}</h2>
         <p className="text-center text-cyan-300">{specialization}</p>
+
         <div className="mt-4 space-y-1 text-sm text-gray-200">
           {education && <p>🎓 {education}</p>}
           {experience && <p>🧑‍⚕️ {experience}</p>}
@@ -80,7 +105,7 @@ const AppointmentPage = () => {
         </div>
       </div>
 
-      {/* Appointment Booking */}
+      {/* Appointment Booking Form */}
       <div className="bg-white/10 rounded-2xl p-6 border border-white/20 shadow-md">
         <h1 className="text-3xl font-bold mb-6">Book Appointment</h1>
 
@@ -98,7 +123,7 @@ const AppointmentPage = () => {
             />
           </div>
 
-          {/* Available Times */}
+          {/* Time Slots */}
           <div>
             <label className="block mb-1">Select Time</label>
             <div className="flex flex-wrap gap-2">

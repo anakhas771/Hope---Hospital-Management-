@@ -2,35 +2,43 @@
 
 import { API_URL } from "../lib/api";
 
-// Decode JWT payload
+// -----------------------------
+// Helper: Decode JWT payload
+// -----------------------------
 function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split(".")[1]));
-  } catch {
+  } catch (err) {
+    console.error("Invalid JWT:", err);
     return null;
   }
 }
 
-// ✅ Main function: return a valid access token (refresh if expired)
+// -----------------------------
+// Main: Get a valid access token
+// -----------------------------
 export async function getValidToken() {
   let token = localStorage.getItem("access");
   const refresh = localStorage.getItem("refresh");
 
-  if (!token && !refresh) {
-    return null; // Not logged in
-  }
+  // Not logged in
+  if (!token && !refresh) return null;
 
+  // Check token expiration
   const payload = parseJwt(token);
   const isExpired = !payload || payload.exp * 1000 < Date.now();
 
   if (isExpired && refresh) {
+    // Try refreshing the token
     return await refreshToken(refresh);
   }
 
   return token;
 }
 
-// ✅ Refresh access token using refresh token
+// -----------------------------
+// Refresh access token using refresh token
+// -----------------------------
 async function refreshToken(refresh) {
   try {
     const res = await fetch(`${API_URL}/auth/token/refresh/`, {
@@ -39,16 +47,16 @@ async function refreshToken(refresh) {
       body: JSON.stringify({ refresh }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem("access", data.access);
-      console.log("🔄 Access token refreshed");
-      return data.access;
-    } else {
+    if (!res.ok) {
+      console.error("❌ Refresh token invalid, logging out");
       localStorage.clear();
-      console.error("❌ Refresh token invalid");
       return null;
     }
+
+    const data = await res.json();
+    localStorage.setItem("access", data.access);
+    console.log("🔄 Access token refreshed");
+    return data.access;
   } catch (err) {
     console.error("Refresh failed:", err);
     return null;
