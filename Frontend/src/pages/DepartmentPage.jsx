@@ -10,7 +10,7 @@ const DepartmentsPage = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/doctors/?department=${department}`);
+        const res = await fetch(`https://hope-backend-mvos.onrender.com/api/doctors/?department=${department}`);
         const data = await res.json();
         setDoctors(data);
       } catch (err) {

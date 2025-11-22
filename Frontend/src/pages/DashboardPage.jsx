@@ -34,7 +34,7 @@ const DashboardPage = () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `http://127.0.0.1:8000/accounts/appointments/?user=${userId}`,
+        `https://hope-backend-mvos.onrender.com/accounts/appointments/?user=${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -92,7 +92,7 @@ const DashboardPage = () => {
       if (stillCancelled) {
         try {
           await axios.delete(
-            `http://127.0.0.1:8000/accounts/appointments/${apptId}/`,
+            `https://hope-backend-mvos.onrender.com/accounts/appointments/${apptId}/`,
             { headers: { Authorization: `Bearer ${user.token}` } }
           );
           setAppointments((prev) => prev.filter((a) => a.id !== apptId));

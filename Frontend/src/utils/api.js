@@ -1,6 +1,6 @@
 // FINAL API BASE URL CONFIG
 export const API_URL =
-  import.meta.env.VITE_API_URL || "https://hope-hospital-management.onrender.com/accounts";
+  import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com/accounts";
 
 // Normal JSON fetch
 export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
