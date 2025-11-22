@@ -32,5 +32,10 @@ DATABASES = {
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://hope-frontend-9jr0.onrender.com",
-     "http://localhost:5173",
 ]
+
+# Allow credentials if needed
+CORS_ALLOW_CREDENTIALS = True
+
+# Frontend URL for email redirects
+FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"

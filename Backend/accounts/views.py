@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Count, Sum
 from django.utils.timezone import now
 from datetime import timedelta
-
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from .models import Department, Doctor, Appointment
 from .serializers import (
@@ -62,7 +62,7 @@ class VerifyEmailView(generics.GenericAPIView):
         if not user.is_verified:
             user.is_verified = True
             user.save()
-        return redirect("http://localhost:5173/login?verified=true")
+        return redirect(f"{settings.FRONTEND_URL}/login?verified=true")
 
 
 # -------------------- LOGIN --------------------

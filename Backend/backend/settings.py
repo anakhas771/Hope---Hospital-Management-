@@ -14,6 +14,7 @@ ALLOWED_HOSTS = ["*"]  # Accept all hosts in dev
 
 # -------------------- APPLICATIONS --------------------
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -24,7 +25,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
-    "corsheaders",
+    
 
     # Your apps
     "accounts",
