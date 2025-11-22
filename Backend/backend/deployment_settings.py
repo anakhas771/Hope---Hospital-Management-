@@ -2,27 +2,25 @@ import os
 import dj_database_url
 from .settings import *
 
-# ---- PRODUCTION MODE ----
 DEBUG = False
-
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 ALLOWED_HOSTS = [
     RENDER_HOSTNAME,
+    "hope-backend-mvos.onrender.com",
     "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{RENDER_HOSTNAME}",
+    "https://hope-frontend-9jr0.onrender.com",
 ]
 
-# ---- STATIC FILES (Whitenoise) ----
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ---- DATABASE ----
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ["DATABASE_URL"],
@@ -31,10 +29,7 @@ DATABASES = {
     )
 }
 
-# ---- CORS ----
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
-
-# Disable allow all
 CORS_ALLOW_ALL_ORIGINS = False
-
-
+CORS_ALLOWED_ORIGINS = [
+    "https://hope-frontend-9jr0.onrender.com",
+]
