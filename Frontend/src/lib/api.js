@@ -1,7 +1,9 @@
-export const API_URL =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/accounts";
+// src/lib/api.js
 
-// Normal JSON fetch
+export const API_URL =
+  import.meta.env.VITE_API_URL || "https://hope-hospital-management.onrender.com/accounts";
+
+// Generic API fetch
 export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -20,14 +22,10 @@ export async function apiFetch(endpoint, method = "GET", body = null, token = nu
   return res.json();
 }
 
-// Admin JSON fetch with automatic redirect if not authenticated
+// Admin API fetch (JSON)
 export async function adminFetch(endpoint, method = "GET", body = null) {
   const token = localStorage.getItem("admin_access_token");
-  if (!token) {
-    // Redirect to admin login if token is missing
-    window.location.href = "/admin-login";
-    return;
-  }
+  if (!token) return (window.location.href = "/admin-login");
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
@@ -44,6 +42,7 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
+
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.error || "API error");
   }
@@ -52,14 +51,14 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   return text ? JSON.parse(text) : null;
 }
 
-// Admin fetch for FormData (file uploads)
+// Admin API fetch (FormData)
 export async function adminFetchForm(endpoint, method = "POST", formData) {
   const token = localStorage.getItem("admin_access_token");
-  if (!token) window.location.href = "/admin-login";
+  if (!token) return (window.location.href = "/admin-login");
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}` }, // No content-type
     body: formData,
   });
 
@@ -69,6 +68,7 @@ export async function adminFetchForm(endpoint, method = "POST", formData) {
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
+
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.error || "API error");
   }

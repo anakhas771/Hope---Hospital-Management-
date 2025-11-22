@@ -1,5 +1,8 @@
 // src/utils/getToken.js
 
+import { API_URL } from "../lib/api";
+
+// Decode JWT payload
 function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split(".")[1]));
@@ -8,31 +11,29 @@ function parseJwt(token) {
   }
 }
 
-
-// ✅ Main function: get a valid access token
+// ✅ Main function: return a valid access token (refresh if expired)
 export async function getValidToken() {
   let token = localStorage.getItem("access");
   const refresh = localStorage.getItem("refresh");
 
   if (!token && !refresh) {
-    return null; // no tokens at all → user not logged in
+    return null; // Not logged in
   }
 
-  // Check if access token expired
   const payload = parseJwt(token);
   const isExpired = !payload || payload.exp * 1000 < Date.now();
 
   if (isExpired && refresh) {
-    return await refreshToken(refresh); // try to refresh
+    return await refreshToken(refresh);
   }
 
   return token;
 }
 
-// ✅ Refresh using refresh token
+// ✅ Refresh access token using refresh token
 async function refreshToken(refresh) {
   try {
-    const res = await fetch("http://127.0.0.1:8000/accounts/auth/token/refresh/", {
+    const res = await fetch(`${API_URL}/auth/token/refresh/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh }),
@@ -40,18 +41,16 @@ async function refreshToken(refresh) {
 
     if (res.ok) {
       const data = await res.json();
-      // Save new access token
       localStorage.setItem("access", data.access);
-      console.log("🔄 Refreshed access token");
+      console.log("🔄 Access token refreshed");
       return data.access;
     } else {
-      const error = await res.json();
-      console.error("❌ Refresh failed:", error);
-      localStorage.clear(); // clear storage if refresh is invalid
+      localStorage.clear();
+      console.error("❌ Refresh token invalid");
       return null;
     }
   } catch (err) {
-    console.error("Error refreshing token:", err);
+    console.error("Refresh failed:", err);
     return null;
   }
 }
