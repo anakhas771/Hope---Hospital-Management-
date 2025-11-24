@@ -70,30 +70,20 @@ class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = authenticate(
-            request,
-            email=serializer.validated_data["email"],
-            password=serializer.validated_data["password"]
-        )
-
-        if not user:
-            return Response({"error": "❌ Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-        if not user.is_verified:
-            return Response({"error": "❌ Email not verified"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = serializer.validated_data["user"]
 
         refresh = RefreshToken.for_user(user)
-        user_serializer = UserSerializer(user)
-
         return Response({
             "message": "✅ Login successful",
-            "user": user_serializer.data,
+            "user": UserSerializer(user).data,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-        })
+        }, status=200)
+
 
 
 # -------------------- RESET PASSWORD --------------------

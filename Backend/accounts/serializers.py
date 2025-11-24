@@ -78,16 +78,25 @@ class RegisterSerializer(serializers.ModelSerializer):
 # -------------------- LOGIN SERIALIZER --------------------
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        user = authenticate(email=attrs.get("email"), password=attrs.get("password"))
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        user = User.objects.filter(email=email).first()
         if not user:
             raise serializers.ValidationError("Invalid credentials")
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Invalid credentials")
+
         if not user.is_verified:
             raise serializers.ValidationError("Email is not verified")
+
         attrs["user"] = user
         return attrs
+
 
 
 # -------------------- DEPARTMENT SERIALIZER --------------------

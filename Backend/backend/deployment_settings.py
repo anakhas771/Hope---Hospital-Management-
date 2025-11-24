@@ -1,3 +1,4 @@
+# backend/deployment_settings.py
 import os
 import dj_database_url
 from .settings import *
@@ -39,3 +40,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Frontend URL for email redirects
 FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"
+
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+]
