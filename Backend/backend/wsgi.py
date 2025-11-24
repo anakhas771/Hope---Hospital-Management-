@@ -24,9 +24,11 @@ if os.environ.get("RENDER") == "1":
         if not User.objects.filter(email="admin@hope.com").exists():
             User.objects.create_superuser(
                 email="admin@hope.com",
-                name="Admin",
+                first_name="Admin",
+                last_name="User",
                 password="Admin@123"
             )
+
             print("Superuser created successfully on Render!")
     except Exception as e:
         print("SUPERUSER ERROR:", e)
