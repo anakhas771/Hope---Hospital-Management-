@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, X, LogIn } from "lucide-react";
+import { API_URL } from "../lib/api";
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ const SignUpPage = () => {
     }
 
     try {
-      const res = await fetch("https://hope-backend-mvos.onrender.com/accounts/auth/register/", {
+      const res = await fetch(`${API_URL}/accounts/auth/register/`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
