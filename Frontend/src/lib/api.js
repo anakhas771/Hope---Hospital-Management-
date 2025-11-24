@@ -3,7 +3,7 @@
 // -------------------------------------------
 // BASE API URL
 // -------------------------------------------
-export const API_URL = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 // ---------------------------------------------------
 // NORMAL USER API FETCH (for frontend)
