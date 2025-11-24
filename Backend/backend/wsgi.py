@@ -13,7 +13,7 @@ from django.core.wsgi import get_wsgi_application
 # will override this automatically.
 #
 # But we still set a safe default for local dev:
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.deployment_settings")
 
 application = get_wsgi_application()
 if os.environ.get("RENDER") == "1":
