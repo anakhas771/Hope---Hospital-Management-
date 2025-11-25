@@ -49,8 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "password", "confirm_password", "full_name", "first_name", "last_name")
-        read_only_fields = ("first_name", "last_name")
+        fields = ("email", "password", "confirm_password", "full_name")
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
@@ -74,7 +73,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             is_verified=True
         )
         return user
-
 
 
 # -------------------- LOGIN SERIALIZER --------------------
