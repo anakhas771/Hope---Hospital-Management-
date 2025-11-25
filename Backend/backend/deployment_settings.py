@@ -9,17 +9,28 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 ALLOWED_HOSTS = [
-    RENDER_HOSTNAME,
-    "hope-backend-mvos.onrender.com",
-    "localhost",
+    host for host in [
+        RENDER_HOSTNAME,
+        "hope-backend-mvos.onrender.com",
+        "localhost",
+    ] if host
 ]
+
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{RENDER_HOSTNAME}",
     "https://hope-frontend-9jr0.onrender.com",
 ]
 
-MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+# Ensure correct order
+MIDDLEWARE.remove("corsheaders.middleware.CorsMiddleware")
+MIDDLEWARE.remove("django.middleware.security.SecurityMiddleware")
+
+MIDDLEWARE.insert(0, "corsheaders.middleware.CorsMiddleware")
+MIDDLEWARE.insert(1, "django.middleware.security.SecurityMiddleware")
+
+# Insert WhiteNoise right after SecurityMiddleware
+MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DATABASES = {
@@ -52,3 +63,6 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken", "Authorization"]
