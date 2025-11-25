@@ -39,13 +39,23 @@ class RegisterView(generics.CreateAPIView):
             reverse("verify-email", kwargs={"user_id": user.id})
         )
 
-        send_mail(
-            subject="Verify your Hospital account",
-            message=f"Hi {user.first_name},\n\nClick this link to verify your email:\n{verification_link}",
-            from_email="hope@hospital.com",
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+        # -------------------------
+# SEND VERIFICATION EMAIL
+# -------------------------
+
+        try:
+            send_mail(
+                subject="Verify your Hospital Account",
+                message=f"Hi {user.first_name},\n\nPlease click the link to verify your email:\n{verification_link}",
+                from_email=settings.DEFAULT_FROM_EMAIL,  # MUST be a real email
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
+        except Exception as e:
+            # Prevent signup from crashing if email fails
+            print("EMAIL SEND ERROR:", e)
+
 
         return Response(
             {"message": "✅ Registration successful. Check your email to verify your account."},
