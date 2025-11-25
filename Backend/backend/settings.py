@@ -97,8 +97,19 @@ AUTH_USER_MODEL = "accounts.User"
 
 # -------------------- CORS --------------------
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = ["https://hope-frontend-9jr0.onrender.com",]
+CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 # -------------------- REST FRAMEWORK --------------------
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
