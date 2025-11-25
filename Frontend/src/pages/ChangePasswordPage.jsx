@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import PageSection from "../components/PageSection";
 import { toast, Toaster } from "react-hot-toast";
+import { API_URL } from "../lib/api";
 
 const ChangePasswordPage = () => {
   const { token } = useParams();
@@ -25,19 +26,18 @@ const ChangePasswordPage = () => {
 
     try {
       const res = await fetch(
-        "https://hope-backend-mvos.onrender.com/accounts/users/change-password/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: token,
-            new_password: password,
-            confirm_password: confirmPassword,
-          }),
-        }
-      );
+  `${API_URL}/accounts/auth/change-password/`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: token,
+      new_password: password,
+      confirm_password: confirmPassword,
+    }),
+  }
+);
+
 
       const data = await res.json();
 

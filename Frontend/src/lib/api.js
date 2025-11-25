@@ -111,3 +111,16 @@ export async function adminFetchForm(endpoint, method = "POST", formData) {
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
+// ---------------------------------------------------
+// PUBLIC API FETCH (no /accounts/ prefix, no auth needed)
+// ---------------------------------------------------
+export async function apiFetchPublic(endpoint, options = {}) {
+  const res = await fetch(`${API_URL}${endpoint}`, options);
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(errText || `API Error: ${res.status}`);
+  }
+
+  return res.json();
+}

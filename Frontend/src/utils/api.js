@@ -1,7 +1,10 @@
 // src/lib/api.js
 
+// -----------------------------
 // BASE URL CONFIG
+// -----------------------------
 export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
 // -----------------------------
 // Helper: Safe JSON parse
 // -----------------------------
@@ -15,7 +18,7 @@ async function safeJson(res) {
 }
 
 // -----------------------------
-// User API Fetch (JSON)
+// User/Account API Fetch (JSON)
 // -----------------------------
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("access");
@@ -37,6 +40,20 @@ export async function apiFetch(endpoint, options = {}) {
       localStorage.removeItem("access");
       window.location.href = "/login";
     }
+    throw new Error(err.detail || err.error || `API Error: ${res.status}`);
+  }
+
+  return safeJson(res);
+}
+
+// -----------------------------
+// Public API Fetch (non-account endpoints)
+// -----------------------------
+export async function apiFetchPublic(endpoint, options = {}) {
+  const res = await fetch(`${API_URL}${endpoint}`, options);
+
+  if (!res.ok) {
+    const err = await safeJson(res).catch(() => ({}));
     throw new Error(err.detail || err.error || `API Error: ${res.status}`);
   }
 
