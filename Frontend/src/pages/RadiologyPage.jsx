@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DoctorCard from "../components/DoctorCard";
 import PageSection from "../components/PageSection";
-import { apiFetchWithRefresh } from "../lib/api";
+import { apiFetch} from "../lib/api";
 
 const RadiologyPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -22,17 +22,17 @@ const RadiologyPage = () => {
 
   useEffect(() => {
     const fetchDoctors = async () => {
-  try {
-    setLoading(true);
-    const data = await apiFetchWithRefresh(`/doctors/?department=${departmentName}`);
-    setDoctors(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error(err);
-    setError(err.message || "Failed to fetch doctors");
-  } finally {
-    setLoading(false);
-  }
-};
+      try {
+        setLoading(true);
+        const data = await apiFetch(`/doctors/?department=${departmentName}`);
+        setDoctors(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to fetch doctors");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchDoctors();
   }, []);
 
