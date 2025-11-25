@@ -32,7 +32,12 @@ const SignUpPage = () => {
     setLoading(true);
 
     // --- VALIDATION ---
-    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError("All fields are required");
       setLoading(false);
       return;
@@ -58,11 +63,11 @@ const SignUpPage = () => {
 
     // --- FIXED NAME SPLIT LOGIC ---
     const nameParts = formData.fullName.trim().split(" ");
-    const firstName = nameParts.shift();        // first word
-    const lastName = nameParts.join(" ");       // remaining words (may be empty)
+    const firstName = nameParts.shift(); // first word
+    const lastName = nameParts.join(" "); // remaining words (may be empty)
 
     try {
-      const res = await fetch(`${API_URL}/accounts/register/`, {
+      const res = await fetch(`${API_URL}/accounts/auth/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,8 +83,15 @@ const SignUpPage = () => {
       console.log("Signup response:", data);
 
       if (res.ok) {
-        setSuccess("✅ Account created! Please check your email to verify your account.");
-        setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
+        setSuccess(
+          "✅ Account created! Please check your email to verify your account."
+        );
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
       } else {
         const errMsg = Object.values(data).flat().join(" ");
         setError(errMsg || "Signup failed. Try again.");
@@ -123,13 +135,21 @@ const SignUpPage = () => {
         </motion.h2>
 
         {error && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm mb-3 text-center">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-red-400 text-sm mb-3 text-center"
+          >
             {error}
           </motion.p>
         )}
 
         {success && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-400 text-sm mb-3 text-center">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-green-400 text-sm mb-3 text-center"
+          >
             {success}
           </motion.p>
         )}
@@ -137,7 +157,10 @@ const SignUpPage = () => {
         <motion.form
           initial="hidden"
           animate="visible"
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.1 } },
+          }}
           onSubmit={handleSubmit}
           className="space-y-5"
         >
@@ -204,7 +227,11 @@ const SignUpPage = () => {
           {/* Submit */}
           <motion.button
             variants={inputVariant}
-            whileHover={{ scale: 1.05, backgroundColor: "#8B5CF6", boxShadow: "0px 8px 15px rgba(139,92,246,0.4)" }}
+            whileHover={{
+              scale: 1.05,
+              backgroundColor: "#8B5CF6",
+              boxShadow: "0px 8px 15px rgba(139,92,246,0.4)",
+            }}
             whileTap={{ scale: 0.95 }}
             type="submit"
             className="w-full py-2 rounded-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold shadow-lg shadow-cyan-400/40 transition-all"
