@@ -6,13 +6,12 @@ from django.contrib.auth import authenticate
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 # -------------------- USER SERIALIZER --------------------
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
-    last_login = serializers.DateTimeField(read_only=True)
-    date_joined = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = User
@@ -27,6 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
             "last_login",
         ]
+        read_only_fields = ["date_joined", "last_login"]
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip()
@@ -38,12 +38,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all(), message="Email already exists")]
     )
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        validators=[validate_password],
-        style={'input_type': 'password'}
-    )
+    password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
     full_name = serializers.CharField(required=True)
 
@@ -52,8 +47,23 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ("email", "password", "confirm_password", "full_name")
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["confirm_password"]:
+        pwd = attrs.get("password")
+        cpwd = attrs.get("confirm_password")
+
+        # Match check
+        if pwd != cpwd:
             raise serializers.ValidationError({"password": "Passwords do not match"})
+
+        # Custom safe validation instead of Django's strict validator
+        if len(pwd) < 6:
+            raise serializers.ValidationError({"password": "Password must be at least 6 characters"})
+
+        if pwd.isdigit():
+            raise serializers.ValidationError({"password": "Password cannot be all numbers"})
+
+        if attrs["email"].split("@")[0] in pwd:
+            raise serializers.ValidationError({"password": "Password is too similar to email"})
+
         return attrs
 
     def create(self, validated_data):
@@ -85,10 +95,8 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get("password")
 
         user = User.objects.filter(email=email).first()
-        if not user:
-            raise serializers.ValidationError("Invalid credentials")
 
-        if not user.check_password(password):
+        if not user or not user.check_password(password):
             raise serializers.ValidationError("Invalid credentials")
 
         if not user.is_verified:
@@ -96,7 +104,6 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
-
 
 
 # -------------------- DEPARTMENT SERIALIZER --------------------
@@ -162,7 +169,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # Automatically assign logged-in user as patient
         validated_data["patient"] = self.context["request"].user
         return super().create(validated_data)
 
@@ -180,18 +186,12 @@ class ResetPasswordSerializer(serializers.Serializer):
         email = self.validated_data["email"]
         user = User.objects.get(email=email)
 
-        # Generate a reset token
         token = get_random_string(64)
-
-        # Save token in user model (ensure reset_token field exists)
         user.reset_token = token
         user.save()
 
-        # Build reset link
         reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
 
-
-        # Send email
         send_mail(
             subject="Reset Your Hospital Password",
             message=f"Hi {user.first_name},\n\nClick the link to reset your password:\n{reset_link}",
@@ -202,23 +202,29 @@ class ResetPasswordSerializer(serializers.Serializer):
         return token
 
 
+# -------------------- CHANGE PASSWORD SERIALIZER --------------------
 class ChangePasswordSerializer(serializers.Serializer):
     token = serializers.CharField()
-    new_password = serializers.CharField(write_only=True, required=True, validators=[validate_password], style={'input_type': 'password'})
-    confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        if attrs['new_password'] != attrs['confirm_password']:
+        if attrs["new_password"] != attrs["confirm_password"]:
             raise serializers.ValidationError("Passwords do not match")
-        if not User.objects.filter(reset_token=attrs['token']).exists():
+
+        if not User.objects.filter(reset_token=attrs["token"]).exists():
             raise serializers.ValidationError("Invalid or expired token")
+
+        if len(attrs["new_password"]) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters")
+
         return attrs
 
     def save(self):
-        token = self.validated_data['token']
+        token = self.validated_data["token"]
         user = User.objects.get(reset_token=token)
-        user.set_password(self.validated_data['new_password'])
-        user.reset_token = None  # clear token after use
+        user.set_password(self.validated_data["new_password"])
+        user.reset_token = None
         user.save()
         return user
 
