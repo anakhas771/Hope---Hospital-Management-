@@ -45,11 +45,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         style={'input_type': 'password'}
     )
     confirm_password = serializers.CharField(write_only=True, required=True)
-    full_name = serializers.CharField(write_only=True, required=True)
+    full_name = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ("email", "password", "confirm_password", "full_name")
+        fields = ("email", "password", "confirm_password", "full_name", "first_name", "last_name")
+        read_only_fields = ("first_name", "last_name")
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
@@ -60,7 +61,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         full_name = validated_data.pop("full_name")
         validated_data.pop("confirm_password")
 
-        # Split name
         parts = full_name.split()
         first_name = parts[0]
         last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
@@ -71,7 +71,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=last_name,
             password=validated_data["password"],
             is_active=True,
-            is_verified=True  # Set false if email verification needed
+            is_verified=True
         )
         return user
 
