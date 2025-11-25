@@ -14,6 +14,7 @@ const SignUpPage = () => {
     password: "",
     confirmPassword: "",
   });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,39 +31,48 @@ const SignUpPage = () => {
     setSuccess("");
     setLoading(true);
 
+    // --- VALIDATION ---
     if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
       setError("All fields are required");
       setLoading(false);
       return;
     }
+
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       setError("Invalid email format");
       setLoading(false);
       return;
     }
+
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters");
       setLoading(false);
       return;
     }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       setLoading(false);
       return;
     }
 
-    try {
-      const res = await fetch(`${API_URL}/accounts/auth/register/`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    full_name: formData.fullName,
-    email: formData.email,
-    password: formData.password,
-    confirm_password: formData.confirmPassword,
-  }),
-});
+    // --- FIXED NAME SPLIT LOGIC ---
+    const nameParts = formData.fullName.trim().split(" ");
+    const firstName = nameParts.shift();        // first word
+    const lastName = nameParts.join(" ");       // remaining words (may be empty)
 
+    try {
+      const res = await fetch(`${API_URL}/accounts/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: formData.email,
+          password: formData.password,
+          confirm_password: formData.confirmPassword,
+        }),
+      });
 
       const data = await res.json();
       console.log("Signup response:", data);
@@ -78,6 +88,7 @@ const SignUpPage = () => {
       console.error("Signup error:", err);
       setError("Something went wrong. Please try again later.");
     }
+
     setLoading(false);
   };
 
@@ -95,7 +106,6 @@ const SignUpPage = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative bg-white/10 backdrop-blur-lg p-10 rounded-2xl shadow-2xl w-full max-w-md border border-white/20 mt-10 lg:mt-0"
       >
-        {/* Cross Button */}
         <button
           onClick={() => navigate("/")}
           className="absolute top-4 right-4 text-white/70 hover:text-white"
@@ -113,21 +123,13 @@ const SignUpPage = () => {
         </motion.h2>
 
         {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-400 text-sm mb-3 text-center"
-          >
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm mb-3 text-center">
             {error}
           </motion.p>
         )}
 
         {success && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-green-400 text-sm mb-3 text-center"
-          >
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-400 text-sm mb-3 text-center">
             {success}
           </motion.p>
         )}
@@ -199,7 +201,7 @@ const SignUpPage = () => {
             </button>
           </motion.div>
 
-          {/* Signup Button */}
+          {/* Submit */}
           <motion.button
             variants={inputVariant}
             whileHover={{ scale: 1.05, backgroundColor: "#8B5CF6", boxShadow: "0px 8px 15px rgba(139,92,246,0.4)" }}
@@ -211,7 +213,6 @@ const SignUpPage = () => {
           </motion.button>
         </motion.form>
 
-        {/* Back to Login */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
