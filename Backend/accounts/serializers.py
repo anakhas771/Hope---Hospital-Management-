@@ -44,7 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         validators=[validate_password],
         style={'input_type': 'password'}
     )
-    confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only=True, required=True)
     full_name = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -53,26 +53,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError({"password": "Passwords do not match."})
+            raise serializers.ValidationError({"password": "Passwords do not match"})
         return attrs
 
     def create(self, validated_data):
         full_name = validated_data.pop("full_name")
         validated_data.pop("confirm_password")
 
-        name_parts = full_name.strip().split(" ")
-        first_name = name_parts[0]
-        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+        # Split name
+        parts = full_name.split()
+        first_name = parts[0]
+        last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
 
         user = User.objects.create_user(
             email=validated_data["email"],
-            password=validated_data["password"],
             first_name=first_name,
             last_name=last_name,
+            password=validated_data["password"],
             is_active=True,
-            is_verified=False  # Set False if email verification is implemented
+            is_verified=True  # Set false if email verification needed
         )
         return user
+
 
 
 # -------------------- LOGIN SERIALIZER --------------------
