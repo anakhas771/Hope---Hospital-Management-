@@ -1,18 +1,16 @@
-# backend/settings.py
 import os
 from pathlib import Path
 from datetime import timedelta
-from decouple import config, Csv
+from decouple import config
 
-# -------------------- BASE DIR --------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -------------------- SECURITY --------------------
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="unsafe-dev-key")
-DEBUG = True  # Development mode
-ALLOWED_HOSTS = ["*"]  # Accept all hosts in dev
+DEBUG = True  # Dev only
+ALLOWED_HOSTS = ["*"]
 
-# -------------------- APPLICATIONS --------------------
+# -------------------- APPS --------------------
 INSTALLED_APPS = [
     "corsheaders",
     "django.contrib.admin",
@@ -25,11 +23,12 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
-    
 
-    # Your apps
+    # Local apps
     "accounts",
 ]
+
+# -------------------- MIDDLEWARE --------------------
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -41,10 +40,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# -------------------- URLS --------------------
 ROOT_URLCONF = "backend.urls"
 
-# -------------------- TEMPLATES --------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -63,7 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# -------------------- DATABASE --------------------
+# -------------------- LOCAL DATABASE --------------------
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -75,42 +72,22 @@ DATABASES = {
     }
 }
 
-# -------------------- PASSWORD VALIDATION --------------------
-AUTH_PASSWORD_VALIDATORS = []
-
-# -------------------- INTERNATIONALIZATION --------------------
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata"
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
 # -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-
-# -------------------- CUSTOM USER MODEL --------------------
 AUTH_USER_MODEL = "accounts.User"
 
 # -------------------- CORS --------------------
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = ["https://hope-frontend-9jr0.onrender.com",]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://hope-frontend-9jr0.onrender.com",
+]
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
-# -------------------- REST FRAMEWORK --------------------
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
@@ -120,14 +97,14 @@ REST_FRAMEWORK = {
     ],
 }
 
-# -------------------- SIMPLE JWT --------------------
+# -------------------- JWT --------------------
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-# -------------------- EMAIL CONFIG --------------------
+# -------------------- EMAIL --------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -135,28 +112,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config("EMAIL_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_PASS")
 DEFAULT_FROM_EMAIL = "Hospital <hope@hospital.com>"
-EMAIL_SUBJECT_PREFIX = "[Hospital] "
 
-# -------------------- PAYPAL CONFIG --------------------
-PAYPAL_CLIENT_ID = config("PAYPAL_CLIENT_ID", default="")
-PAYPAL_CLIENT_SECRET = config("PAYPAL_CLIENT_SECRET", default="")
-PAYPAL_MODE = "sandbox"
-
-# -------------------- LOGGING --------------------
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "root": {"handlers": ["console"], "level": "DEBUG"},
-}
-
-
-# if running on Render, use deployment_settings
-if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER") == "1":
-    try:
-        from .deployment_settings import *   # noqa: F401,F403
-    except Exception:
-        pass
-
-
+# -------------------- FRONTEND URL --------------------
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
+
+# -------------------- AUTO LOAD deployment_settings.py --------------------
+if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER"):
+    from .deployment_settings import *

@@ -1,38 +1,32 @@
-# backend/deployment_settings.py
 import os
 import dj_database_url
 from .settings import *
 
+# -------------------- SECURITY --------------------
 DEBUG = False
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 ALLOWED_HOSTS = [
-    host for host in [
-        RENDER_HOSTNAME,
-        "hope-backend-mvos.onrender.com",
-        "localhost",
-    ] if host
+    RENDER_HOSTNAME,
+    "hope-backend-mvos.onrender.com",
+    "localhost",
 ]
-
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{RENDER_HOSTNAME}",
     "https://hope-frontend-9jr0.onrender.com",
 ]
 
-# Ensure correct order
-MIDDLEWARE.remove("corsheaders.middleware.CorsMiddleware")
-MIDDLEWARE.remove("django.middleware.security.SecurityMiddleware")
-
+# -------------------- FIX MIDDLEWARE ORDER --------------------
 MIDDLEWARE.insert(0, "corsheaders.middleware.CorsMiddleware")
 MIDDLEWARE.insert(1, "django.middleware.security.SecurityMiddleware")
-
-# Insert WhiteNoise right after SecurityMiddleware
 MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# -------------------- RENDER DATABASE --------------------
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ["DATABASE_URL"],
@@ -41,18 +35,13 @@ DATABASES = {
     )
 }
 
-
-
-
-# Frontend URL for email redirects
-FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"
-
-# Allow credentials if needed
-CORS_ALLOW_CREDENTIALS = True
+# -------------------- CORS --------------------
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://hope-frontend-9jr0.onrender.com",
 ]
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -64,5 +53,8 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken", "Authorization"]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"
