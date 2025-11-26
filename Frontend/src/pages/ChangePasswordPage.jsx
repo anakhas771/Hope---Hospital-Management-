@@ -26,21 +26,12 @@ const ChangePasswordPage = () => {
 
     setLoading(true);
 
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
-    if (!token) {
-      toast.error("You must log in first!");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch(`${API_URL}/accounts/change-password/`, {
+      const res = await fetch(`${API_URL}/accounts/reset-password/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          email: email, // passed from state
           new_password: newPassword,
           confirm_password: confirmPassword,
         }),
