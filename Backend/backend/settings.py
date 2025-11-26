@@ -117,3 +117,6 @@ FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 # -------------------- AUTO LOAD deployment_settings.py --------------------
 if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER"):
     from .deployment_settings import *
+import logging
+logging.basicConfig(level=logging.DEBUG)
+print("SETTINGS LOADED OK")
