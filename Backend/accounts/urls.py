@@ -10,7 +10,8 @@ AppointmentViewSet,
 UserViewSet,
 ChangePasswordView,
 admin_stats,
-AdminLoginView
+AdminLoginView,
+reset_password
 )
 
 # Router for viewsets
@@ -25,6 +26,7 @@ urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path("reset-password/", reset_password, name="reset-password"),
 
     # Admin stats
     path("admin/stats/", admin_stats, name="admin-stats"),

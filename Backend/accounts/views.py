@@ -117,29 +117,26 @@ class ForgotPasswordAPIView(APIView):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def reset_password_with_token(request):
-    token = request.data.get("token")
+def reset_password(request):
+    email = request.data.get("email")
     new_password = request.data.get("new_password")
     confirm_password = request.data.get("confirm_password")
 
-    
-    if not all([token, new_password, confirm_password]):
-        return Response({"detail": "All fields are required."}, status=400)
+    if not email:
+        return Response({"detail": "Email is required."}, status=400)
+
     if new_password != confirm_password:
         return Response({"detail": "Passwords do not match."}, status=400)
-    if len(new_password) < 6:
-        return Response({"detail": "Password must be at least 6 characters."}, status=400)
 
     try:
-        reset_entry = UserPasswordResetToken.objects.get(token=token)
-    except UserPasswordResetToken.DoesNotExist:
-        return Response({"detail": "Invalid or expired token."}, status=400)
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "User with this email does not exist."}, status=404)
 
-    user = reset_entry.user
     user.set_password(new_password)
     user.save()
-    reset_entry.delete()
-    return Response({"detail": "Password changed successfully!"}, status=200)
+
+    return Response({"detail": "Password reset successful."}, status=200)
 
 
 # -------------------- DEPARTMENTS --------------------
