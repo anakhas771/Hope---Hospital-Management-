@@ -154,11 +154,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 # -------------------- RESET PASSWORD SERIALIZER --------------------
 class ResetPasswordSerializer(serializers.Serializer):
-    """No email reset — now returns an error telling user this feature is disabled."""
     email = serializers.EmailField()
 
     def validate(self, attrs):
-        raise serializers.ValidationError("Password reset via email is disabled.")
+        email = attrs.get("email")
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("No account found with this email.")
+        return attrs
 
 
 

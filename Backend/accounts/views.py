@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Department, Doctor, Appointment
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer,
-    ChangePasswordSerializer,
+    ChangePasswordSerializer,ResetPasswordSerializer,
     DepartmentSerializer, DoctorSerializer, AppointmentSerializer,
     AdminStatsSerializer
 )
@@ -62,10 +62,13 @@ class LoginView(generics.GenericAPIView):
 # -------------------- RESET PASSWORD --------------------
 @api_view(["POST"])
 def reset_password(request):
-    return Response(
-        {"detail": "Password reset via email is disabled."},
-        status=status.HTTP_400_BAD_REQUEST,
-    )
+    serializer = ResetPasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    return Response({
+        "detail": "Password reset instruction sent. Please contact support."
+    })
+
 
 # -------------------- CHANGE PASSWORD --------------------
 @api_view(["POST"])
