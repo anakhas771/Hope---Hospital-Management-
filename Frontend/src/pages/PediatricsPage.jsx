@@ -47,7 +47,8 @@ const PediatricsPage = () => {
       >
         <h1 className="text-5xl font-bold mb-4">{departmentName}</h1>
         <p className="text-gray-200 max-w-3xl mx-auto">
-          Specialized care for infants, children, and adolescents. Our pediatric team ensures healthy growth and management of childhood illnesses.
+          Specialized care for infants, children, and adolescents. Our pediatric
+          team ensures healthy growth and management of childhood illnesses.
         </p>
         <div className="flex flex-wrap gap-3 justify-center mt-6">
           {services.map((s, i) => (
@@ -66,7 +67,9 @@ const PediatricsPage = () => {
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : doctors.length === 0 ? (
-        <p className="text-center text-gray-400">No doctors found in {departmentName}</p>
+        <p className="text-center text-gray-400">
+          No doctors found in {departmentName}
+        </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {doctors.map((doctor) => (

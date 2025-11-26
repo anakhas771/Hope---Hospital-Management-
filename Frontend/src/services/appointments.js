@@ -4,7 +4,7 @@ import { apiFetch } from "../lib/api";
 export async function verifyPayment(paymentId, doctorId, dateTime, notes = "") {
   // Get the user from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
-  
+
   if (!user || !user.token) {
     throw new Error("User not authenticated. Please login again.");
   }
@@ -14,7 +14,7 @@ export async function verifyPayment(paymentId, doctorId, dateTime, notes = "") {
   try {
     const res = await apiFetch(
       "/appointments/verify_payment/", // endpoint
-      "POST",                          // method
+      "POST", // method
       {
         payment_id: paymentId,
         doctor_id: doctorId,

@@ -68,7 +68,9 @@ const PaymentPage = () => {
       await verifyPayment(details.id, doctorId, isoDateTime, notes);
 
       setShowConfetti(true);
-      toast.success(`🎉 Payment successful! Appointment booked with Dr. ${doctorName}.`);
+      toast.success(
+        `🎉 Payment successful! Appointment booked with Dr. ${doctorName}.`
+      );
 
       setTimeout(() => {
         setShowConfetti(false);
@@ -88,7 +90,11 @@ const PaymentPage = () => {
       {showConfetti && (
         <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
           <div className="w-full max-w-2xl">
-            <Lottie animationData={confettiAnimation} loop={false} className="w-full h-auto" />
+            <Lottie
+              animationData={confettiAnimation}
+              loop={false}
+              className="w-full h-auto"
+            />
           </div>
         </div>
       )}
@@ -104,11 +110,21 @@ const PaymentPage = () => {
           <div>
             <h1 className="text-3xl font-bold mb-6">Payment</h1>
             <div className="space-y-3 mb-6 text-gray-200">
-              <p><strong>Doctor:</strong> {doctorName}</p>
-              <p><strong>Amount:</strong> ₹{amount}</p>
-              <p><strong>Date:</strong> {formattedDate}</p>
-              <p><strong>Time:</strong> {formattedTime}</p>
-              <p><strong>Department:</strong> {department || "General"}</p>
+              <p>
+                <strong>Doctor:</strong> {doctorName}
+              </p>
+              <p>
+                <strong>Amount:</strong> ₹{amount}
+              </p>
+              <p>
+                <strong>Date:</strong> {formattedDate}
+              </p>
+              <p>
+                <strong>Time:</strong> {formattedTime}
+              </p>
+              <p>
+                <strong>Department:</strong> {department || "General"}
+              </p>
             </div>
           </div>
 

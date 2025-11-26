@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DoctorCard from "../components/DoctorCard";
 import PageSection from "../components/PageSection";
-import { apiFetch} from "../lib/api";
+import { apiFetch } from "../lib/api";
 
 const RadiologyPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -46,11 +46,15 @@ const RadiologyPage = () => {
       >
         <h1 className="text-5xl font-bold mb-4">{departmentName}</h1>
         <p className="text-gray-200 max-w-3xl mx-auto">
-          Advanced radiological diagnostics and imaging services. We offer precise imaging for accurate diagnosis and treatment planning.
+          Advanced radiological diagnostics and imaging services. We offer
+          precise imaging for accurate diagnosis and treatment planning.
         </p>
         <div className="flex flex-wrap gap-3 justify-center mt-6">
           {services.map((s, i) => (
-            <span key={i} className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm">
+            <span
+              key={i}
+              className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm"
+            >
               {s}
             </span>
           ))}
@@ -62,7 +66,9 @@ const RadiologyPage = () => {
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : doctors.length === 0 ? (
-        <p className="text-center text-gray-400">No doctors found in {departmentName}</p>
+        <p className="text-center text-gray-400">
+          No doctors found in {departmentName}
+        </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {doctors.map((doctor) => (

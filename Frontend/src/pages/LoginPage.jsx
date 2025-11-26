@@ -49,9 +49,9 @@ const LoginPage = () => {
       } else {
         toast.error(
           data.error ||
-          data.detail ||
-          data.non_field_errors?.[0] ||
-          "❌ Invalid credentials"
+            data.detail ||
+            data.non_field_errors?.[0] ||
+            "❌ Invalid credentials"
         );
       }
     } catch (err) {
@@ -60,7 +60,10 @@ const LoginPage = () => {
     }
   };
 
-  const inputVariant = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+  const inputVariant = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
     <PageSection className="pt-8 md:pt-16 px-6 flex justify-center items-start min-h-screen">
@@ -94,7 +97,10 @@ const LoginPage = () => {
         <motion.form
           initial="hidden"
           animate="visible"
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.1 } },
+          }}
           onSubmit={handleLogin}
           className="space-y-5"
         >
@@ -132,7 +138,10 @@ const LoginPage = () => {
 
           <motion.button
             variants={inputVariant}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(14,165,233,0.5)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 25px rgba(14,165,233,0.5)",
+            }}
             whileTap={{ scale: 0.95 }}
             type="submit"
             className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-lg shadow-cyan-400/40 transition-all"

@@ -34,7 +34,6 @@ export async function apiFetch(endpoint, options = {}) {
   return res.json();
 }
 
-
 // ---------------------------------------------------
 // ADMIN API FETCH (JWT secured)
 // Used for dashboard login + CRUD
@@ -74,7 +73,6 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
-
 
 // ---------------------------------------------------
 // ADMIN FORM DATA FETCH (Uploads)

@@ -32,7 +32,12 @@ const SignUpPage = () => {
     setSuccess("");
     setLoading(true);
 
-    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError("All fields are required");
       setLoading(false);
       return;
@@ -79,7 +84,7 @@ const SignUpPage = () => {
           password: "",
           confirmPassword: "",
         });
-         setTimeout(() => navigate("/login"), 800);
+        setTimeout(() => navigate("/login"), 800);
       } else {
         const msg = Object.values(data).flat().join(" ");
         setError(msg || "Signup failed.");
@@ -121,13 +126,20 @@ const SignUpPage = () => {
           Create Your Account
         </motion.h2>
 
-        {error && <p className="text-red-400 text-sm mb-3 text-center">{error}</p>}
-        {success && <p className="text-green-400 text-sm mb-3 text-center">{success}</p>}
+        {error && (
+          <p className="text-red-400 text-sm mb-3 text-center">{error}</p>
+        )}
+        {success && (
+          <p className="text-green-400 text-sm mb-3 text-center">{success}</p>
+        )}
 
         <motion.form
           initial="hidden"
           animate="visible"
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.1 } },
+          }}
           onSubmit={handleSubmit}
           className="space-y-5"
         >

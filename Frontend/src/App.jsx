@@ -1,6 +1,12 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
@@ -51,27 +57,33 @@ function AppContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-
           {/* Landing Page */}
           <Route
             path="/"
             element={
               <>
                 <Navbar />
-                <GlassSection><Hero /></GlassSection>
-                <GlassSection><Services /></GlassSection>
-                <GlassSection><Departments /></GlassSection>
+                <GlassSection>
+                  <Hero />
+                </GlassSection>
+                <GlassSection>
+                  <Services />
+                </GlassSection>
+                <GlassSection>
+                  <Departments />
+                </GlassSection>
                 <Footer />
               </>
             }
           />
 
           {/* Auth Pages */}
-          {[{ path: "/login", component: LoginPage },
+          {[
+            { path: "/login", component: LoginPage },
             { path: "/signup", component: SignUpPage },
             { path: "/forgot-password", component: ForgotPasswordPage },
-            { path: "/change-password/:token", component: ChangePasswordPage }
-          ].map(item => {
+            { path: "/change-password", component: ChangePasswordPage },
+          ].map((item) => {
             const Component = item.component;
             return (
               <Route
@@ -80,7 +92,9 @@ function AppContent() {
                 element={
                   <PageWrapper>
                     <div className="flex items-center justify-center min-h-screen px-6">
-                      <GlassSection><Component /></GlassSection>
+                      <GlassSection>
+                        <Component />
+                      </GlassSection>
                     </div>
                   </PageWrapper>
                 }
@@ -89,13 +103,14 @@ function AppContent() {
           })}
 
           {/* Department Pages */}
-          {[{ path: "cardiology", component: CardiologyPage },
+          {[
+            { path: "cardiology", component: CardiologyPage },
             { path: "neurology", component: NeurologyPage },
             { path: "pediatrics", component: PediatricsPage },
             { path: "orthopedics", component: OrthopedicsPage },
             { path: "emergency", component: EmergencyPage },
-            { path: "radiology", component: RadiologyPage }
-          ].map(item => {
+            { path: "radiology", component: RadiologyPage },
+          ].map((item) => {
             const Component = item.component;
             return (
               <Route
@@ -104,7 +119,9 @@ function AppContent() {
                 element={
                   <PageWrapper>
                     <Navbar />
-                    <GlassSection><Component /></GlassSection>
+                    <GlassSection>
+                      <Component />
+                    </GlassSection>
                     <Footer />
                   </PageWrapper>
                 }
@@ -118,7 +135,9 @@ function AppContent() {
             element={
               <PageWrapper>
                 <Navbar />
-                <GlassSection><DashboardPage /></GlassSection>
+                <GlassSection>
+                  <DashboardPage />
+                </GlassSection>
                 <Footer />
               </PageWrapper>
             }
@@ -145,8 +164,10 @@ function AppContent() {
           </Route>
 
           {/* Redirect old admin-dashboard URL */}
-          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
-
+          <Route
+            path="/admin-dashboard"
+            element={<Navigate to="/admin" replace />}
+          />
         </Routes>
       </AnimatePresence>
     </div>
@@ -157,7 +178,13 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <PayPalScriptProvider options={{ "client-id": "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9", currency: "USD" }}>
+        <PayPalScriptProvider
+          options={{
+            "client-id":
+              "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9",
+            currency: "USD",
+          }}
+        >
           <AppContent />
         </PayPalScriptProvider>
       </Router>
