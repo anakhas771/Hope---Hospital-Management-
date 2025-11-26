@@ -29,12 +29,11 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
-
-def create(self, request, *args, **kwargs):
-    serializer = self.get_serializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = serializer.save()
-    return Response({"message": "Registration successful"}, status=201)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Registration successful"}, status=201)
 
 
 # -------------------- LOGIN --------------------
@@ -44,19 +43,19 @@ class LoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
 
-def post(self, request):
-    serializer = self.get_serializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    user = serializer.validated_data["user"]
-    refresh = RefreshToken.for_user(user)
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
 
-    return Response({
-        "message": "Login successful",
-        "user": UserSerializer(user).data,
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }, status=200)
+        return Response({
+            "message": "Login successful",
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }, status=200)
 
 
 # -------------------- FORGOT PASSWORD --------------------
@@ -65,21 +64,21 @@ class ForgotPasswordAPIView(APIView):
     permission_classes = [AllowAny]
 
 
-def post(self, request):
-    email = request.data.get("email")
-    if not email:
-        return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response({"detail": "No user found with this email."}, status=400)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"detail": "No user found with this email."}, status=400)
 
-    # generate token
-    token = get_random_string(50)
-    UserPasswordResetToken.objects.create(user=user, token=token)
+        # generate token
+        token = get_random_string(50)
+        UserPasswordResetToken.objects.create(user=user, token=token)
 
-    return Response({"reset_token": token}, status=200)
+        return Response({"reset_token": token}, status=200)
 
 
 # -------------------- RESET PASSWORD (USING TOKEN) --------------------
@@ -116,14 +115,12 @@ def reset_password_with_token(request):
 # -------------------- CHANGE PASSWORD (AUTHENTICATED USERS) --------------------
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def change_password(request):
-    serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+    serializer = ChangePasswordSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-    return Response({"success": "Password changed successfully"}, status=200)
-    return Response(serializer.errors, status=400)
-
+        return Response({"detail": "Password changed successfully"}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # -------------------- DEPARTMENTS --------------------
 
 class DepartmentViewSet(viewsets.ModelViewSet):
@@ -139,12 +136,12 @@ class DoctorViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
 
-def get_queryset(self):
-    queryset = super().get_queryset()
-    department_name = self.request.query_params.get("department")
-    if department_name:
-        queryset = queryset.filter(department__name__iexact=department_name)
-    return queryset
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        department_name = self.request.query_params.get("department")
+        if department_name:
+            queryset = queryset.filter(department__name__iexact=department_name)
+        return queryset
 
 
 # -------------------- APPOINTMENTS --------------------
@@ -161,34 +158,34 @@ def get_queryset(self):
         return Appointment.objects.all()
     return Appointment.objects.filter(patient=user)
 
-def perform_create(self, serializer):
-    serializer.save(patient=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(patient=self.request.user)
 
-@action(detail=False, methods=["post"], url_path="verify_payment")
-def verify_payment(self, request):
-    user = request.user
-    payment_id = request.data.get("payment_id")
-    doctor_id = request.data.get("doctor_id")
-    date_time = request.data.get("date_time")
-    notes = request.data.get("notes", "")
+    @action(detail=False, methods=["post"], url_path="verify_payment")
+    def verify_payment(self, request):
+        user = request.user
+        payment_id = request.data.get("payment_id")
+        doctor_id = request.data.get("doctor_id")
+        date_time = request.data.get("date_time")
+        notes = request.data.get("notes", "")
 
-    if not all([payment_id, doctor_id, date_time]):
-        return Response({"error": "Missing required fields"}, status=400)
+        if not all([payment_id, doctor_id, date_time]):
+            return Response({"error": "Missing required fields"}, status=400)
 
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    amount = getattr(doctor, "fee", 500)
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        amount = getattr(doctor, "fee", 500)
 
-    appointment = Appointment.objects.create(
-        patient=user,
-        doctor=doctor,
-        date_time=date_time,
-        notes=notes,
-        status="paid",
-        amount=amount,
-        payment_id=payment_id
-    )
+        appointment = Appointment.objects.create(
+            patient=user,
+            doctor=doctor,
+            date_time=date_time,
+            notes=notes,
+            status="paid",
+            amount=amount,
+            payment_id=payment_id
+        )
 
-    return Response(AppointmentSerializer(appointment).data, status=201)
+        return Response(AppointmentSerializer(appointment).data, status=201)
 
 
 # -------------------- ADMIN STATS --------------------

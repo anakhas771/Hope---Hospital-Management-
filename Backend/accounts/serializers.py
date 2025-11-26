@@ -168,23 +168,24 @@ def validate(self, attrs):
 # -------------------- CHANGE PASSWORD SERIALIZER --------------------
 
 class ChangePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     new_password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+        if len(attrs["new_password"]) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters")
+        if not User.objects.filter(email=attrs["email"]).exists():
+            raise serializers.ValidationError("No user found with this email")
+        return attrs
 
-def validate(self, attrs):
-    if attrs["new_password"] != attrs["confirm_password"]:
-        raise serializers.ValidationError("Passwords do not match")
-    if len(attrs["new_password"]) < 6:
-        raise serializers.ValidationError("Password must be at least 6 characters")
-    return attrs
-
-def save(self):
-    user = self.context["request"].user
-    user.set_password(self.validated_data["new_password"])
-    user.save()
-    return user
-
+    def save(self):
+        user = User.objects.get(email=self.validated_data["email"])
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
 
 # -------------------- ADMIN STATS SERIALIZER --------------------
 
