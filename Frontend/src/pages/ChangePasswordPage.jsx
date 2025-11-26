@@ -25,34 +25,30 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-  `${API_URL}/accounts/auth/change-password/`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      token: token,
-      new_password: password,
-      confirm_password: confirmPassword,
-    }),
-  }
-);
-
-
+      const res = await fetch(`${API_URL}/accounts/auth/change-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: token,
+          new_password: password,
+          confirm_password: confirmPassword,
+        }),
+      });
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("✅ Password successfully changed!");
-        setTimeout(() => navigate("/login"), 1500);
-      } else {
-        toast.error(`❌ ${data.detail || "Something went wrong"}`);
-      }
-    } catch (error) {
-      toast.error("⚠️ Server error. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success("✅ Password successfully changed!");
+    setTimeout(() => navigate("/login"), 1500);
+  } else {
+    toast.error(`❌ ${data.detail || "Something went wrong"}`);
+  }
+} catch (error) {
+  toast.error("⚠️ Server error. Please try again later.");
+} finally {
+  setLoading(false);
+}
+
+};
 
   return (
     <PageSection className="pt-32 px-6 flex justify-center items-start min-h-screen">
