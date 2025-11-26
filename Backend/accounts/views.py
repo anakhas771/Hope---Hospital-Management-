@@ -29,12 +29,12 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"message": "Registration successful"}, status=201)
-
 
 # -------------------- LOGIN --------------------
 
@@ -45,17 +45,51 @@ class LoginView(generics.GenericAPIView):
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data.get("user")
+            if not user:
+                return Response({"error": "Invalid credentials"}, status=401)
 
-        user = serializer.validated_data["user"]
-        refresh = RefreshToken.for_user(user)
+            refresh = RefreshToken.for_user(user)
 
-        return Response({
-            "message": "Login successful",
-            "user": UserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=200)
+            return Response({
+                "message": "Login successful",
+                "user": UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
+# -------------------- CHANGE PASSWORD --------------------
+
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = self.get_object()
+            new_password = serializer.validated_data.get("new_password")
+            confirm_password = serializer.validated_data.get("confirm_password")
+
+            if new_password != confirm_password:
+                return Response({"detail": "Passwords do not match"}, status=400)
+            if len(new_password) < 6:
+                return Response({"detail": "Password must be at least 6 characters"}, status=400)
+
+            user.set_password(new_password)
+            user.save()
+            return Response({"detail": "Password changed successfully"}, status=200)
+
+        return Response(serializer.errors, status=400)
 
 
 # -------------------- FORGOT PASSWORD --------------------
@@ -74,14 +108,12 @@ class ForgotPasswordAPIView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "No user found with this email."}, status=400)
 
-        # generate token
         token = get_random_string(50)
         UserPasswordResetToken.objects.create(user=user, token=token)
-
         return Response({"reset_token": token}, status=200)
 
 
-# -------------------- RESET PASSWORD (USING TOKEN) --------------------
+# -------------------- RESET PASSWORD USING TOKEN --------------------
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -90,7 +122,7 @@ def reset_password_with_token(request):
     new_password = request.data.get("new_password")
     confirm_password = request.data.get("confirm_password")
 
-
+    
     if not all([token, new_password, confirm_password]):
         return Response({"detail": "All fields are required."}, status=400)
     if new_password != confirm_password:
@@ -106,21 +138,10 @@ def reset_password_with_token(request):
     user = reset_entry.user
     user.set_password(new_password)
     user.save()
-
-    reset_entry.delete()  # one-time use
-
+    reset_entry.delete()
     return Response({"detail": "Password changed successfully!"}, status=200)
 
 
-# -------------------- CHANGE PASSWORD (AUTHENTICATED USERS) --------------------
-
-@api_view(["POST"])
-def change_password(request):
-    serializer = ChangePasswordSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"detail": "Password changed successfully"}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # -------------------- DEPARTMENTS --------------------
 
 class DepartmentViewSet(viewsets.ModelViewSet):
@@ -152,11 +173,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-def get_queryset(self):
-    user = self.request.user
-    if user.is_staff or user.is_superuser:
-        return Appointment.objects.all()
-    return Appointment.objects.filter(patient=user)
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return Appointment.objects.all()
+        return Appointment.objects.filter(patient=user)
 
     def perform_create(self, serializer):
         serializer.save(patient=self.request.user)
@@ -184,7 +205,6 @@ def get_queryset(self):
             amount=amount,
             payment_id=payment_id
         )
-
         return Response(AppointmentSerializer(appointment).data, status=201)
 
 
@@ -198,7 +218,7 @@ def admin_stats(request):
     total_patients = User.objects.filter(is_patient=True).count()
     total_appointments = Appointment.objects.count()
 
-    
+   
     thirty_days_ago = now() - timedelta(days=30)
     revenue_30d = Appointment.objects.filter(status="paid", created_at__gte=thirty_days_ago).aggregate(s=Sum("amount"))["s"] or 0
 
@@ -229,7 +249,6 @@ def admin_stats(request):
         "last_12_months_revenue": monthly,
         "recent_appointments": recent_appointments
     }
-
     serializer = AdminStatsSerializer(payload)
     return Response(serializer.data)
 
@@ -253,7 +272,6 @@ class AdminLoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = authenticate(request, email=serializer.validated_data["email"], password=serializer.validated_data["password"])
-
         if not user:
             return Response({"error": "Invalid credentials"}, status=401)
         if not (user.is_staff or user.is_superuser):
@@ -266,3 +284,4 @@ class AdminLoginView(generics.GenericAPIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token)
         }, status=200)
+
