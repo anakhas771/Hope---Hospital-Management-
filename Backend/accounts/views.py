@@ -35,40 +35,17 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Build email verification link
         verification_link = request.build_absolute_uri(
             reverse("verify-email", kwargs={"user_id": user.id})
         )
 
-        # -------------------------
-# SEND VERIFICATION EMAIL
-# -------------------------
+        subject = "Verify your Hospital account"
+        text = f"Hi {user.first_name}, click here: {verification_link}"
+        html = f"<p>Hi {user.first_name},</p><p><a href='{verification_link}'>Verify Email</a></p>"
 
-        try:
+        send_email(subject, [user.email], text=text, html=html)
 
-            # ... inside create()
-            subject = "Verify your Hospital account"
-            text = f"Hi {user.first_name},\n\nClick this link to verify your email:\n{verification_link}"
-            html = f"<p>Hi {user.first_name},</p><p>Click this link to verify your email:</p><p><a href='{verification_link}'>{verification_link}</a></p>"
-
-            # Try sending (doesn't raise) — returns boolean
-            sent = send_email(subject, [user.email], text=text, html=html, from_email=settings.DEFAULT_FROM_EMAIL)
-            if not sent:
-                # Log or handle if you want to notify admin — but do NOT abort registration
-                logger = logging.getLogger(__name__)
-                logger.warning("Verification email failed to send for user %s", user.email)
-
-
-
-        except Exception as e:
-            # Prevent signup from crashing if email fails
-            print("EMAIL SEND ERROR:", e)
-
-
-        return Response(
-            {"message": "✅ Registration successful. Check your email to verify your account."},
-            status=status.HTTP_201_CREATED
-        )
+        return Response({"message": "Registration successful. Verify your email."}, status=201)
 
 
 # -------------------- VERIFY EMAIL --------------------

@@ -33,55 +33,41 @@ class UserSerializer(serializers.ModelSerializer):
 
 # -------------------- REGISTER SERIALIZER --------------------
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all(), message="Email already exists")]
-    )
-    password = serializers.CharField(write_only=True, required=True)
-    confirm_password = serializers.CharField(write_only=True, required=True)
-    full_name = serializers.CharField(required=True)
+    email = serializers.EmailField(validators=[
+        UniqueValidator(queryset=User.objects.all(), message="Email already exists")
+    ])
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+    full_name = serializers.CharField()
 
     class Meta:
         model = User
         fields = ("email", "password", "confirm_password", "full_name")
 
     def validate(self, attrs):
-        pwd = attrs.get("password")
-        cpwd = attrs.get("confirm_password")
-
-        # Match check
-        if pwd != cpwd:
+        if attrs["password"] != attrs["confirm_password"]:
             raise serializers.ValidationError({"password": "Passwords do not match"})
 
-        # Custom safe validation instead of Django's strict validator
-        if len(pwd) < 6:
+        if len(attrs["password"]) < 6:
             raise serializers.ValidationError({"password": "Password must be at least 6 characters"})
-
-        if pwd.isdigit():
-            raise serializers.ValidationError({"password": "Password cannot be all numbers"})
-
-        if attrs["email"].split("@")[0] in pwd:
-            raise serializers.ValidationError({"password": "Password is too similar to email"})
 
         return attrs
 
-    def create(self, validated_data):
-        full_name = validated_data.pop("full_name")
-        validated_data.pop("confirm_password")
+    def create(self, data):
+        full = data.pop("full_name")
+        data.pop("confirm_password")
+        first, *rest = full.split()
+        last = " ".join(rest)
 
-        parts = full_name.split()
-        first_name = parts[0]
-        last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
-
-        user = User.objects.create_user(
-            email=validated_data["email"],
-            first_name=first_name,
-            last_name=last_name,
-            password=validated_data["password"],
+        return User.objects.create_user(
+            email=data["email"],
+            first_name=first,
+            last_name=last,
+            password=data["password"],
             is_active=True,
             is_verified=False
         )
-        return user
+
 
 
 # -------------------- LOGIN SERIALIZER --------------------
