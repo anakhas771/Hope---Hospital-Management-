@@ -1,152 +1,198 @@
-# accounts/views.py
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, get_user_model
 from django.db.models import Count, Sum
 from django.utils.timezone import now
+from django.utils.crypto import get_random_string
 from datetime import timedelta
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Department, Doctor, Appointment
+from .models import Department, Doctor, Appointment, UserPasswordResetToken
 from .serializers import (
-    RegisterSerializer, LoginSerializer, UserSerializer,
-    ChangePasswordSerializer,ResetPasswordSerializer,
-    DepartmentSerializer, DoctorSerializer, AppointmentSerializer,
-    AdminStatsSerializer
+RegisterSerializer, LoginSerializer, UserSerializer,
+ChangePasswordSerializer,
+DepartmentSerializer, DoctorSerializer, AppointmentSerializer,
+AdminStatsSerializer
 )
 from .permissions import IsStaffOrSuperuser
 
 User = get_user_model()
 
-
 # -------------------- REGISTER --------------------
+
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()  # <-- important
 
-        return Response(
-            {"message": "Registration successful"},
-            status=201
-        )
+def create(self, request, *args, **kwargs):
+    serializer = self.get_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    return Response({"message": "Registration successful"}, status=201)
+
 
 # -------------------- LOGIN --------------------
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data["user"]
-
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            "message": "Login successful",
-            "user": UserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=200)
-
-
-# -------------------- RESET PASSWORD --------------------
-@api_view(["POST"])
-def reset_password(request):
-    serializer = ResetPasswordSerializer(data=request.data)
+def post(self, request):
+    serializer = self.get_serializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    user = serializer.validated_data["user"]
+    refresh = RefreshToken.for_user(user)
+
     return Response({
-        "detail": "Password reset instruction sent. Please contact support."
-    })
+        "message": "Login successful",
+        "user": UserSerializer(user).data,
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }, status=200)
 
 
-# -------------------- CHANGE PASSWORD --------------------
+# -------------------- FORGOT PASSWORD --------------------
+
+class ForgotPasswordAPIView(APIView):
+    permission_classes = [AllowAny]
+
+
+def post(self, request):
+    email = request.data.get("email")
+    if not email:
+        return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "No user found with this email."}, status=400)
+
+    # generate token
+    token = get_random_string(50)
+    UserPasswordResetToken.objects.create(user=user, token=token)
+
+    return Response({"reset_token": token}, status=200)
+
+
+# -------------------- RESET PASSWORD (USING TOKEN) --------------------
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def reset_password_with_token(request):
+    token = request.data.get("token")
+    new_password = request.data.get("new_password")
+    confirm_password = request.data.get("confirm_password")
+
+
+    if not all([token, new_password, confirm_password]):
+        return Response({"detail": "All fields are required."}, status=400)
+    if new_password != confirm_password:
+        return Response({"detail": "Passwords do not match."}, status=400)
+    if len(new_password) < 6:
+        return Response({"detail": "Password must be at least 6 characters."}, status=400)
+
+    try:
+        reset_entry = UserPasswordResetToken.objects.get(token=token)
+    except UserPasswordResetToken.DoesNotExist:
+        return Response({"detail": "Invalid or expired token."}, status=400)
+
+    user = reset_entry.user
+    user.set_password(new_password)
+    user.save()
+
+    reset_entry.delete()  # one-time use
+
+    return Response({"detail": "Password changed successfully!"}, status=200)
+
+
+# -------------------- CHANGE PASSWORD (AUTHENTICATED USERS) --------------------
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_password(request):
     serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
     if serializer.is_valid():
         serializer.save()
-        return Response({"success": "Password changed successfully"}, status=200)
+    return Response({"success": "Password changed successfully"}, status=200)
     return Response(serializer.errors, status=400)
 
-
 # -------------------- DEPARTMENTS --------------------
+
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsStaffOrSuperuser]
 
-
 # -------------------- DOCTORS --------------------
+
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        department_name = self.request.query_params.get("department")
 
-        if department_name:
-            queryset = queryset.filter(department__name__iexact=department_name)
-
-        return queryset
+def get_queryset(self):
+    queryset = super().get_queryset()
+    department_name = self.request.query_params.get("department")
+    if department_name:
+        queryset = queryset.filter(department__name__iexact=department_name)
+    return queryset
 
 
 # -------------------- APPOINTMENTS --------------------
+
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all().order_by("-created_at")
     serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff or user.is_superuser:
-            return Appointment.objects.all()
-        return Appointment.objects.filter(patient=user)
 
-    def perform_create(self, serializer):
-        serializer.save(patient=self.request.user)
+def get_queryset(self):
+    user = self.request.user
+    if user.is_staff or user.is_superuser:
+        return Appointment.objects.all()
+    return Appointment.objects.filter(patient=user)
 
-    @action(detail=False, methods=["post"], url_path="verify_payment")
-    def verify_payment(self, request):
-        user = request.user
-        payment_id = request.data.get("payment_id")
-        doctor_id = request.data.get("doctor_id")
-        date_time = request.data.get("date_time")
-        notes = request.data.get("notes", "")
+def perform_create(self, serializer):
+    serializer.save(patient=self.request.user)
 
-        if not all([payment_id, doctor_id, date_time]):
-            return Response({"error": "Missing required fields"}, status=400)
+@action(detail=False, methods=["post"], url_path="verify_payment")
+def verify_payment(self, request):
+    user = request.user
+    payment_id = request.data.get("payment_id")
+    doctor_id = request.data.get("doctor_id")
+    date_time = request.data.get("date_time")
+    notes = request.data.get("notes", "")
 
-        doctor = get_object_or_404(Doctor, id=doctor_id)
-        amount = getattr(doctor, "fee", 500)
+    if not all([payment_id, doctor_id, date_time]):
+        return Response({"error": "Missing required fields"}, status=400)
 
-        appointment = Appointment.objects.create(
-            patient=user,
-            doctor=doctor,
-            date_time=date_time,
-            notes=notes,
-            status="paid",
-            amount=amount,
-            payment_id=payment_id
-        )
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    amount = getattr(doctor, "fee", 500)
 
-        return Response(AppointmentSerializer(appointment).data, status=201)
+    appointment = Appointment.objects.create(
+        patient=user,
+        doctor=doctor,
+        date_time=date_time,
+        notes=notes,
+        status="paid",
+        amount=amount,
+        payment_id=payment_id
+    )
+
+    return Response(AppointmentSerializer(appointment).data, status=201)
 
 
 # -------------------- ADMIN STATS --------------------
+
 @api_view(["GET"])
 @permission_classes([IsStaffOrSuperuser])
 def admin_stats(request):
@@ -155,44 +201,25 @@ def admin_stats(request):
     total_patients = User.objects.filter(is_patient=True).count()
     total_appointments = Appointment.objects.count()
 
-    # Revenue last 30 days
+    
     thirty_days_ago = now() - timedelta(days=30)
-    revenue_30d = Appointment.objects.filter(
-        status="paid",
-        created_at__gte=thirty_days_ago
-    ).aggregate(s=Sum("amount"))["s"] or 0
+    revenue_30d = Appointment.objects.filter(status="paid", created_at__gte=thirty_days_ago).aggregate(s=Sum("amount"))["s"] or 0
 
-    # Appointments by department
     appointments_by_department = list(
-        Department.objects.annotate(appts=Count("doctor__appointments"))
-        .order_by("-appts")[:6]
-        .values("name", "appts")
+        Department.objects.annotate(appts=Count("doctor__appointments")).order_by("-appts")[:6].values("name", "appts")
     )
 
-    # Revenue for last 12 months
     monthly = []
     start = (now().replace(day=1) - timedelta(days=330)).replace(day=1)
     current = start
-
     for _ in range(12):
         next_month = (current.replace(day=28) + timedelta(days=4)).replace(day=1)
-        rev = Appointment.objects.filter(
-            status="paid",
-            created_at__gte=current,
-            created_at__lt=next_month
-        ).aggregate(s=Sum("amount"))["s"] or 0
-
-        monthly.append({
-            "month": current.strftime("%b %Y"),
-            "revenue": float(rev)
-        })
-
+        rev = Appointment.objects.filter(status="paid", created_at__gte=current, created_at__lt=next_month).aggregate(s=Sum("amount"))["s"] or 0
+        monthly.append({"month": current.strftime("%b %Y"), "revenue": float(rev)})
         current = next_month
 
     recent_appointments = list(
-        Appointment.objects.select_related("doctor", "patient")
-        .order_by("-created_at")[:5]
-        .values("doctor__name", "patient__email", "date_time", "status", "amount")
+        Appointment.objects.select_related("doctor", "patient").order_by("-created_at")[:5].values("doctor__name", "patient__email", "date_time", "status", "amount")
     )
 
     payload = {
@@ -211,30 +238,27 @@ def admin_stats(request):
 
 
 # -------------------- USER MANAGEMENT (ADMIN ONLY) --------------------
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
 
-
 # -------------------- ADMIN LOGIN --------------------
+
 class AdminLoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
+
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = authenticate(
-            request,
-            email=serializer.validated_data["email"],
-            password=serializer.validated_data["password"]
-        )
+        user = authenticate(request, email=serializer.validated_data["email"], password=serializer.validated_data["password"])
 
         if not user:
             return Response({"error": "Invalid credentials"}, status=401)
-
         if not (user.is_staff or user.is_superuser):
             return Response({"error": "Not authorized as admin"}, status=403)
 

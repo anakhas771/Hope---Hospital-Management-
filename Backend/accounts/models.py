@@ -98,3 +98,11 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.doctor.name} with {self.patient.email} at {self.date_time}"
+
+class UserPasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.token}"
