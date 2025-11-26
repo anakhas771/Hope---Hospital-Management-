@@ -1,19 +1,28 @@
+// src/pages/ChangePasswordPage.jsx
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import PageSection from "../components/PageSection";
 import { toast, Toaster } from "react-hot-toast";
 import { API_URL } from "../lib/api";
 
 const ChangePasswordPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || ""; // get email from state
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!email) {
+      toast.error("Email not provided!");
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       toast.error("❌ Passwords do not match");
@@ -23,20 +32,13 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("access");
-      if (!token) {
-        toast.error("You must be logged in");
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch(`${API_URL}/accounts/auth/change-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          email,
           new_password: newPassword,
           confirm_password: confirmPassword,
         }),
@@ -61,8 +63,8 @@ const ChangePasswordPage = () => {
 
   return (
     <PageSection className="pt-32 px-6 flex justify-center items-start min-h-screen">
-      {" "}
       <Toaster position="top-center" />
+
       <motion.div
         initial={{ opacity: 0, y: 100, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
