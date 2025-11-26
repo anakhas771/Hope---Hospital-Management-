@@ -72,13 +72,14 @@ const SignUpPage = () => {
       console.log("Signup response:", data);
 
       if (res.ok) {
-        setSuccess("Account created! You can now login.");
+        setSuccess("Account created!Redirecting to login...");
         setFormData({
           fullName: "",
           email: "",
           password: "",
           confirmPassword: "",
         });
+         setTimeout(() => navigate("/login"), 800);
       } else {
         const msg = Object.values(data).flat().join(" ");
         setError(msg || "Signup failed.");
