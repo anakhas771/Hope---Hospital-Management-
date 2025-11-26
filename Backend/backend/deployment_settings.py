@@ -59,4 +59,4 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"
 
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+RESEND_API_KEY = ""

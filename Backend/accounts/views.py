@@ -3,15 +3,14 @@ from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
-from django.core.mail import send_mail
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate, get_user_model
 from django.db.models import Count, Sum
 from django.utils.timezone import now
 from datetime import timedelta
-from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import Department, Doctor, Appointment
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer,
@@ -20,7 +19,6 @@ from .serializers import (
     AdminStatsSerializer
 )
 from .permissions import IsStaffOrSuperuser
-from backend.utils.email_sender import send_email  # adjust import path if different
 
 User = get_user_model()
 
@@ -33,31 +31,8 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        verification_link = request.build_absolute_uri(
-            reverse("verify-email", kwargs={"user_id": user.id})
-        )
-
-        subject = "Verify your Hospital account"
-        text = f"Hi {user.first_name}, click here: {verification_link}"
-        html = f"<p>Hi {user.first_name},</p><p><a href='{verification_link}'>Verify Email</a></p>"
-
-        send_email(subject, [user.email], text=text, html=html)
-
-        return Response({"message": "Registration successful. Verify your email."}, status=201)
-
-
-# -------------------- VERIFY EMAIL --------------------
-class VerifyEmailView(generics.GenericAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
-        if not user.is_verified:
-            user.is_verified = True
-            user.save()
-        return redirect(f"{settings.FRONTEND_URL}/login?verified=true")
+        serializer.save()
+        return Response({"message": "Registration successful"}, status=201)
 
 
 # -------------------- LOGIN --------------------
@@ -72,13 +47,13 @@ class LoginView(generics.GenericAPIView):
         user = serializer.validated_data["user"]
 
         refresh = RefreshToken.for_user(user)
+
         return Response({
-            "message": "✅ Login successful",
+            "message": "Login successful",
             "user": UserSerializer(user).data,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }, status=200)
-
 
 
 # -------------------- RESET PASSWORD --------------------
@@ -88,7 +63,7 @@ def reset_password(request):
     serializer = ResetPasswordSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"success": "✅ Password reset email sent"})
+        return Response({"success": "Password reset email sent"})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -99,9 +74,10 @@ def change_password(request, token=None):
     serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
     if token:
         serializer.initial_data["token"] = token
+
     if serializer.is_valid():
         serializer.save()
-        return Response({"success": "✅ Password changed successfully"})
+        return Response({"success": "Password changed successfully"})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -121,8 +97,10 @@ class DoctorViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         department_name = self.request.query_params.get("department")
+
         if department_name:
             queryset = queryset.filter(department__name__iexact=department_name)
+
         return queryset
 
 
@@ -143,34 +121,29 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="verify_payment")
     def verify_payment(self, request):
-        """
-        Custom endpoint to verify payment and create an appointment.
-        """
         user = request.user
         payment_id = request.data.get("payment_id")
         doctor_id = request.data.get("doctor_id")
         date_time = request.data.get("date_time")
         notes = request.data.get("notes", "")
 
-        if not payment_id or not doctor_id or not date_time:
-            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+        if not all([payment_id, doctor_id, date_time]):
+            return Response({"error": "Missing required fields"}, status=400)
 
-        try:
-            doctor = get_object_or_404(Doctor, id=doctor_id)
-            amount = getattr(doctor, "fee", 500)  # fallback fee
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        amount = getattr(doctor, "fee", 500)
 
-            appointment = Appointment.objects.create(
-                patient=user,
-                doctor=doctor,
-                date_time=date_time,
-                notes=notes,
-                status="paid",
-                amount=amount,
-                payment_id=payment_id
-            )
-            return Response(AppointmentSerializer(appointment).data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        appointment = Appointment.objects.create(
+            patient=user,
+            doctor=doctor,
+            date_time=date_time,
+            notes=notes,
+            status="paid",
+            amount=amount,
+            payment_id=payment_id
+        )
+
+        return Response(AppointmentSerializer(appointment).data, status=201)
 
 
 # -------------------- ADMIN STATS --------------------
@@ -182,27 +155,44 @@ def admin_stats(request):
     total_patients = User.objects.filter(is_patient=True).count()
     total_appointments = Appointment.objects.count()
 
+    # Revenue last 30 days
     thirty_days_ago = now() - timedelta(days=30)
-    revenue_30d = Appointment.objects.filter(status="paid", created_at__gte=thirty_days_ago).aggregate(s=Sum("amount"))["s"] or 0
+    revenue_30d = Appointment.objects.filter(
+        status="paid",
+        created_at__gte=thirty_days_ago
+    ).aggregate(s=Sum("amount"))["s"] or 0
 
+    # Appointments by department
     appointments_by_department = list(
-        Department.objects.annotate(appts=Count("doctor__appointments")).order_by("-appts")[:6].values("name", "appts")
+        Department.objects.annotate(appts=Count("doctor__appointments"))
+        .order_by("-appts")[:6]
+        .values("name", "appts")
     )
 
-    # Revenue last 12 months
+    # Revenue for last 12 months
     monthly = []
     start = (now().replace(day=1) - timedelta(days=330)).replace(day=1)
     current = start
+
     for _ in range(12):
         next_month = (current.replace(day=28) + timedelta(days=4)).replace(day=1)
-        rev = Appointment.objects.filter(status="paid", created_at__gte=current, created_at__lt=next_month).aggregate(s=Sum("amount"))["s"] or 0
-        monthly.append({"month": current.strftime("%b %Y"), "revenue": float(rev)})
+        rev = Appointment.objects.filter(
+            status="paid",
+            created_at__gte=current,
+            created_at__lt=next_month
+        ).aggregate(s=Sum("amount"))["s"] or 0
+
+        monthly.append({
+            "month": current.strftime("%b %Y"),
+            "revenue": float(rev)
+        })
+
         current = next_month
 
     recent_appointments = list(
-        Appointment.objects.select_related("doctor", "patient").order_by("-created_at")[:5].values(
-            "doctor__name", "patient__email", "date_time", "status", "amount"
-        )
+        Appointment.objects.select_related("doctor", "patient")
+        .order_by("-created_at")[:5]
+        .values("doctor__name", "patient__email", "date_time", "status", "amount")
     )
 
     payload = {
@@ -213,22 +203,21 @@ def admin_stats(request):
         "revenue_30d": revenue_30d,
         "appointments_by_department": appointments_by_department,
         "last_12_months_revenue": monthly,
-        "recent_appointments": recent_appointments,
+        "recent_appointments": recent_appointments
     }
 
-    ser = AdminStatsSerializer(payload)
-    return Response(ser.data, status=status.HTTP_200_OK)
+    serializer = AdminStatsSerializer(payload)
+    return Response(serializer.data)
 
 
-# -------------------- USER MANAGEMENT --------------------
+# -------------------- USER MANAGEMENT (ADMIN ONLY) --------------------
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]  # Only admin/staff
+    permission_classes = [IsAdminUser]
 
-    def perform_create(self, serializer):
-        serializer.save()
 
+# -------------------- ADMIN LOGIN --------------------
 class AdminLoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -244,18 +233,15 @@ class AdminLoginView(generics.GenericAPIView):
         )
 
         if not user:
-            return Response({"error": "❌ Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-        if not user.is_verified:
-            return Response({"error": "❌ Email not verified"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "Invalid credentials"}, status=401)
+
         if not (user.is_staff or user.is_superuser):
-            return Response({"error": "❌ Not authorized as admin"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Not authorized as admin"}, status=403)
 
         refresh = RefreshToken.for_user(user)
-        user_serializer = UserSerializer(user)
-
         return Response({
-            "message": "✅ Admin login successful",
-            "user": user_serializer.data,
+            "message": "Admin login successful",
+            "user": UserSerializer(user).data,
             "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        })
+            "access": str(refresh.access_token)
+        }, status=200)

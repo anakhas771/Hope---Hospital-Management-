@@ -6,6 +6,7 @@ from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from backend.utils.email_sender import send_email
+import logging
 
 
 # -------------------- USER SERIALIZER --------------------
@@ -21,7 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "is_active",
-            "is_verified",
             "date_joined",
             "last_login",
         ]
@@ -33,9 +33,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 # -------------------- REGISTER SERIALIZER --------------------
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(validators=[
-        UniqueValidator(queryset=User.objects.all(), message="Email already exists")
-    ])
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all(), message="Email already exists")]
+    )
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
     full_name = serializers.CharField()
@@ -56,6 +56,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, data):
         full = data.pop("full_name")
         data.pop("confirm_password")
+
         first, *rest = full.split()
         last = " ".join(rest)
 
@@ -65,9 +66,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=last,
             password=data["password"],
             is_active=True,
-            is_verified=False
         )
-
 
 
 # -------------------- LOGIN SERIALIZER --------------------
@@ -84,8 +83,7 @@ class LoginSerializer(serializers.Serializer):
         if not user or not user.check_password(password):
             raise serializers.ValidationError("Invalid credentials")
 
-        if not user.is_verified:
-            raise serializers.ValidationError("Email is not verified")
+        # Email-verification check removed
 
         attrs["user"] = user
         return attrs
@@ -175,17 +173,17 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.reset_token = token
         user.save()
 
-
         reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
         subject = "Reset Your Hospital Password"
         text = f"Hi {user.first_name},\n\nClick the link to reset your password:\n{reset_link}"
         html = f"<p>Hi {user.first_name},</p><p>Click the link to reset your password:</p><p><a href='{reset_link}'>{reset_link}</a></p>"
 
         sent = send_email(subject, [user.email], text=text, html=html, from_email=settings.DEFAULT_FROM_EMAIL)
+
         if not sent:
-            # optional: log failure
             logger = logging.getLogger(__name__)
-            logger.warning("Password reset email failed to send for %s", user.email)
+            logger.warning("Password reset email failed for %s", user.email)
+
         return token
 
 
