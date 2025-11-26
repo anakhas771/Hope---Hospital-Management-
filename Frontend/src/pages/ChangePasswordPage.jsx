@@ -1,15 +1,13 @@
-// src/pages/ChangePasswordPage.jsx
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 /* eslint-disable no-unused-vars */
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import PageSection from "../components/PageSection";
 import { toast, Toaster } from "react-hot-toast";
 import { API_URL } from "../lib/api";
 
 const ChangePasswordPage = () => {
-  const { token } = useParams();
-  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,7 +15,7 @@ const ChangePasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       toast.error("❌ Passwords do not match");
       return;
     }
@@ -25,30 +23,38 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        toast.error("You must be logged in");
+        return;
+      }
+
       const res = await fetch(`${API_URL}/accounts/auth/change-password/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-          token: token,
-          new_password: password,
+          new_password: newPassword,
           confirm_password: confirmPassword,
         }),
       });
+
       const data = await res.json();
 
       if (res.ok) {
-    toast.success("✅ Password successfully changed!");
-    setTimeout(() => navigate("/login"), 1500);
-  } else {
-    toast.error(`❌ ${data.detail || "Something went wrong"}`);
-  }
-} catch (error) {
-  toast.error("⚠️ Server error. Please try again later.");
-} finally {
-  setLoading(false);
-}
-
-};
+        toast.success("✅ Password changed successfully!");
+        setTimeout(() => navigate("/login"), 1500);
+      } else {
+        toast.error(data.detail || "Something went wrong");
+      }
+    } catch (error) {
+      toast.error("⚠️ Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <PageSection className="pt-32 px-6 flex justify-center items-start min-h-screen">
@@ -61,7 +67,7 @@ const ChangePasswordPage = () => {
         className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl w-full max-w-md border border-white/20 shadow-xl mt-10"
       >
         <h2 className="text-2xl font-bold mb-6 text-center text-white/90">
-          Reset Password
+          Change Password
         </h2>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -69,8 +75,8 @@ const ChangePasswordPage = () => {
             whileFocus={{ scale: 1.02 }}
             type="password"
             placeholder="New Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
             className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 border border-white/20 outline-none"
             required
           />
