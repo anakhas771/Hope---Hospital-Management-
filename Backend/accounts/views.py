@@ -66,12 +66,9 @@ def reset_password(request):
 
 # -------------------- CHANGE PASSWORD --------------------
 @api_view(["POST"])
-@permission_classes([AllowAny])
-def change_password(request, token=None):
+@permission_classes([IsAuthenticated])
+def change_password(request):
     serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
-    if token:
-        serializer.initial_data["token"] = token
-
     if serializer.is_valid():
         serializer.save()
         return Response({"success": "Password changed successfully"})

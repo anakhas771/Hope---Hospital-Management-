@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import User, Department, Doctor, Appointment
 from rest_framework.validators import UniqueValidator
-from django.utils.crypto import get_random_string
 
 
 # -------------------- USER SERIALIZER --------------------
@@ -163,30 +162,21 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 # -------------------- CHANGE PASSWORD SERIALIZER --------------------
 class ChangePasswordSerializer(serializers.Serializer):
-    token = serializers.CharField()
     new_password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         if attrs["new_password"] != attrs["confirm_password"]:
             raise serializers.ValidationError("Passwords do not match")
-
-        if not User.objects.filter(reset_token=attrs["token"]).exists():
-            raise serializers.ValidationError("Invalid or expired token")
-
         if len(attrs["new_password"]) < 6:
             raise serializers.ValidationError("Password must be at least 6 characters")
-
         return attrs
 
     def save(self):
-        token = self.validated_data["token"]
-        user = User.objects.get(reset_token=token)
+        user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
-        user.reset_token = None
         user.save()
         return user
-
 
 # -------------------- ADMIN STATS SERIALIZER --------------------
 class AdminStatsSerializer(serializers.Serializer):

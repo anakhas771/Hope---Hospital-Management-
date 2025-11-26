@@ -2,16 +2,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    RegisterView,
-    LoginView,
-    DepartmentViewSet,
-    DoctorViewSet,
-    AppointmentViewSet,
-    UserViewSet,
-    reset_password,
-    change_password,
-    admin_stats,
-    AdminLoginView
+RegisterView,
+LoginView,
+DepartmentViewSet,
+DoctorViewSet,
+AppointmentViewSet,
+UserViewSet,
+change_password,
+admin_stats,
+AdminLoginView
 )
 
 # Router for viewsets
@@ -25,7 +24,6 @@ urlpatterns = [
     # Authentication
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/login/", LoginView.as_view(), name="login"),
-    path("auth/reset-password/", reset_password, name="reset-password"),
     path("auth/change-password/", change_password, name="change-password"),
 
     # Admin stats
