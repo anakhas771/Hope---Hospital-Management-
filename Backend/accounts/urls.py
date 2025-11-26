@@ -8,7 +8,7 @@ DepartmentViewSet,
 DoctorViewSet,
 AppointmentViewSet,
 UserViewSet,
-change_password,
+ChangePasswordView,
 admin_stats,
 AdminLoginView
 )
@@ -24,7 +24,7 @@ urlpatterns = [
     # Authentication
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/login/", LoginView.as_view(), name="login"),
-    path("auth/change-password/", change_password, name="change-password"),
+    path("auth/change-password/", ChangePasswordView.as_view(), name="change-password"),
 
     # Admin stats
     path("admin/stats/", admin_stats, name="admin-stats"),
