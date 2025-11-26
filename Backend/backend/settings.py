@@ -1,3 +1,4 @@
+# backend/settings.py
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -7,8 +8,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -------------------- SECURITY --------------------
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="unsafe-dev-key")
-DEBUG = True  # Dev only
-ALLOWED_HOSTS = ["*"]
+DEBUG = config("DEBUG", default=True, cast=bool)
+
+# In development allow all hosts; change in production via deployment_settings.py
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=lambda v: [h.strip() for h in v.split(",")])
 
 # -------------------- APPS --------------------
 INSTALLED_APPS = [
@@ -32,6 +35,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # works in dev too
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,13 +76,15 @@ DATABASES = {
     }
 }
 
+# -------------------- AUTH --------------------
+AUTH_USER_MODEL = "accounts.User"
+
 # -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-AUTH_USER_MODEL = "accounts.User"
+STATICFILES_DIRS = [BASE_DIR / "static"]  # optional for dev
 
 # -------------------- CORS --------------------
 CORS_ALLOW_ALL_ORIGINS = False
@@ -88,6 +94,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# -------------------- REST FRAMEWORK --------------------
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
@@ -102,21 +109,31 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=30, cast=int)),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=7, cast=int)),
 }
-# -------------------- EMAIL --------------------
+
+# -------------------- EMAIL (disabled by default) --------------------
+# If you later want to enable email, uncomment and set env vars in production only
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_HOST = "smtp.gmail.com"
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = config("EMAIL_USER")
-# EMAIL_HOST_PASSWORD = config("EMAIL_PASS")
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_HOST_USER = config("EMAIL_USER", default="")
+# EMAIL_HOST_PASSWORD = config("EMAIL_PASS", default="")
+# DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 # -------------------- FRONTEND URL --------------------
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
-# -------------------- AUTO LOAD deployment_settings.py --------------------
+# -------------------- LOGGING --------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+}
+
+# -------------------- Import production overrides when running on Render or when explicitly requested
 if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER"):
-    from .deployment_settings import *
-import logging
-logging.basicConfig(level=logging.DEBUG)
-print("SETTINGS LOADED OK")
+    # do not circular-import; deployment_settings.py will import this file as base
+    pass
