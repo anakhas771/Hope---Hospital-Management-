@@ -31,7 +31,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_patient = models.BooleanField(default=True)
     is_doctor = models.BooleanField(default=False)
-    is_verified = models.BooleanField(default=False)  # Email verified
     reset_token = models.CharField(max_length=64, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 

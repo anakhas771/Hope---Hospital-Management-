@@ -1,12 +1,7 @@
 from rest_framework import serializers
 from .models import User, Department, Doctor, Appointment
-from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 from django.utils.crypto import get_random_string
-from django.conf import settings
-from django.core.exceptions import ValidationError as DjangoValidationError
-from backend.utils.email_sender import send_email
-import logging
 
 
 # -------------------- USER SERIALIZER --------------------
@@ -158,33 +153,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 # -------------------- RESET PASSWORD SERIALIZER --------------------
 class ResetPasswordSerializer(serializers.Serializer):
+    """No email reset — now returns an error telling user this feature is disabled."""
     email = serializers.EmailField()
 
-    def validate_email(self, value):
-        if not User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email not found")
-        return value
+    def validate(self, attrs):
+        raise serializers.ValidationError("Password reset via email is disabled.")
 
-    def save(self):
-        email = self.validated_data["email"]
-        user = User.objects.get(email=email)
-
-        token = get_random_string(64)
-        user.reset_token = token
-        user.save()
-
-        reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
-        subject = "Reset Your Hospital Password"
-        text = f"Hi {user.first_name},\n\nClick the link to reset your password:\n{reset_link}"
-        html = f"<p>Hi {user.first_name},</p><p>Click the link to reset your password:</p><p><a href='{reset_link}'>{reset_link}</a></p>"
-
-        sent = send_email(subject, [user.email], text=text, html=html, from_email=settings.DEFAULT_FROM_EMAIL)
-
-        if not sent:
-            logger = logging.getLogger(__name__)
-            logger.warning("Password reset email failed for %s", user.email)
-
-        return token
 
 
 # -------------------- CHANGE PASSWORD SERIALIZER --------------------

@@ -8,7 +8,6 @@ from .views import (
     DoctorViewSet,
     AppointmentViewSet,
     UserViewSet,
-    VerifyEmailView,
     reset_password,
     change_password,
     admin_stats,
@@ -28,7 +27,6 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/reset-password/", reset_password, name="reset-password"),
     path("auth/change-password/", change_password, name="change-password"),
-    path("auth/verify-email/<int:user_id>/", VerifyEmailView.as_view(), name="verify-email"),
 
     # Admin stats
     path("admin/stats/", admin_stats, name="admin-stats"),
