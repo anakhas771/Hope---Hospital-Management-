@@ -19,11 +19,6 @@ const ChangePasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email) {
-      toast.error("Email not provided!");
-      return;
-    }
-
     if (newPassword !== confirmPassword) {
       toast.error("❌ Passwords do not match");
       return;
@@ -31,14 +26,21 @@ const ChangePasswordPage = () => {
 
     setLoading(true);
 
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    if (!token) {
+      toast.error("You must log in first!");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/accounts/auth/change-password/`, {
+      const res = await fetch(`${API_URL}/accounts/change-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          email,
           new_password: newPassword,
           confirm_password: confirmPassword,
         }),
