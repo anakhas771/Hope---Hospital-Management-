@@ -74,8 +74,8 @@ def change_password(request):
     serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
     if serializer.is_valid():
         serializer.save()
-        return Response({"success": "Password changed successfully"})
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"success": "Password changed successfully"}, status=200)
+    return Response(serializer.errors, status=400)
 
 
 # -------------------- DEPARTMENTS --------------------

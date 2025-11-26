@@ -180,6 +180,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.save()
         return user
 
+
 # -------------------- ADMIN STATS SERIALIZER --------------------
 class AdminStatsSerializer(serializers.Serializer):
     total_users = serializers.IntegerField()
