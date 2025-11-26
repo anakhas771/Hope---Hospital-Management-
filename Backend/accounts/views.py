@@ -20,6 +20,7 @@ from .serializers import (
     AdminStatsSerializer
 )
 from .permissions import IsStaffOrSuperuser
+from backend.utils.email_sender import send_email  # adjust import path if different
 
 User = get_user_model()
 
@@ -44,13 +45,20 @@ class RegisterView(generics.CreateAPIView):
 # -------------------------
 
         try:
-            send_mail(
-                subject="Verify your Hospital Account",
-                message=f"Hi {user.first_name},\n\nPlease click the link to verify your email:\n{verification_link}",
-                from_email=settings.DEFAULT_FROM_EMAIL,  # MUST be a real email
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+
+            # ... inside create()
+            subject = "Verify your Hospital account"
+            text = f"Hi {user.first_name},\n\nClick this link to verify your email:\n{verification_link}"
+            html = f"<p>Hi {user.first_name},</p><p>Click this link to verify your email:</p><p><a href='{verification_link}'>{verification_link}</a></p>"
+
+            # Try sending (doesn't raise) — returns boolean
+            sent = send_email(subject, [user.email], text=text, html=html, from_email=settings.DEFAULT_FROM_EMAIL)
+            if not sent:
+                # Log or handle if you want to notify admin — but do NOT abort registration
+                logger = logging.getLogger(__name__)
+                logger.warning("Verification email failed to send for user %s", user.email)
+
+
 
         except Exception as e:
             # Prevent signup from crashing if email fails

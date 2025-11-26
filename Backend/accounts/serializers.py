@@ -2,11 +2,10 @@ from rest_framework import serializers
 from .models import User, Department, Doctor, Appointment
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth import authenticate
 from django.utils.crypto import get_random_string
-from django.core.mail import send_mail
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from backend.utils.email_sender import send_email
 
 
 # -------------------- USER SERIALIZER --------------------
@@ -80,7 +79,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=last_name,
             password=validated_data["password"],
             is_active=True,
-            is_verified=True
+            is_verified=False
         )
         return user
 
@@ -190,15 +189,17 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.reset_token = token
         user.save()
 
-        reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
 
-        send_mail(
-            subject="Reset Your Hospital Password",
-            message=f"Hi {user.first_name},\n\nClick the link to reset your password:\n{reset_link}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+        reset_link = f"{settings.FRONTEND_URL}/change-password/{token}"
+        subject = "Reset Your Hospital Password"
+        text = f"Hi {user.first_name},\n\nClick the link to reset your password:\n{reset_link}"
+        html = f"<p>Hi {user.first_name},</p><p>Click the link to reset your password:</p><p><a href='{reset_link}'>{reset_link}</a></p>"
+
+        sent = send_email(subject, [user.email], text=text, html=html, from_email=settings.DEFAULT_FROM_EMAIL)
+        if not sent:
+            # optional: log failure
+            logger = logging.getLogger(__name__)
+            logger.warning("Password reset email failed to send for %s", user.email)
         return token
 
 
