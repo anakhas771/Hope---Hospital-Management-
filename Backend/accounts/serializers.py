@@ -47,21 +47,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def create(self, data):
-        full = data.pop("full_name")
-        data.pop("confirm_password")
+    def create(self, validated_data):
+        full = validated_data.pop("full_name")
+        validated_data.pop("confirm_password")
 
-        first, *rest = full.split()
-        last = " ".join(rest)
+        # Split name safely
+        parts = full.split()
+        first = parts[0]
+        last = " ".join(parts[1:]) if len(parts) > 1 else ""
 
+        # Create user
         return User.objects.create_user(
-            email=data["email"],
+            email=validated_data["email"],
             first_name=first,
             last_name=last,
-            password=data["password"],
+            password=validated_data["password"],
             is_active=True,
         )
-
 
 # -------------------- LOGIN SERIALIZER --------------------
 class LoginSerializer(serializers.Serializer):
