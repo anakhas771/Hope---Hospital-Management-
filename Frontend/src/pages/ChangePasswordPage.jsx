@@ -26,6 +26,7 @@ const ChangePasswordPage = () => {
       const token = localStorage.getItem("access");
       if (!token) {
         toast.error("You must be logged in");
+        setLoading(false);
         return;
       }
 
@@ -45,6 +46,8 @@ const ChangePasswordPage = () => {
 
       if (res.ok) {
         toast.success("✅ Password changed successfully!");
+        setNewPassword("");
+        setConfirmPassword("");
         setTimeout(() => navigate("/login"), 1500);
       } else {
         toast.error(data.detail || "Something went wrong");
@@ -58,8 +61,8 @@ const ChangePasswordPage = () => {
 
   return (
     <PageSection className="pt-32 px-6 flex justify-center items-start min-h-screen">
+      {" "}
       <Toaster position="top-center" />
-
       <motion.div
         initial={{ opacity: 0, y: 100, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
