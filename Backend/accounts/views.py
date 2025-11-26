@@ -31,9 +31,12 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"message": "Registration successful"}, status=201)
+        user = serializer.save()  # <-- important
 
+        return Response(
+            {"message": "Registration successful"},
+            status=201
+        )
 
 # -------------------- LOGIN --------------------
 class LoginView(generics.GenericAPIView):

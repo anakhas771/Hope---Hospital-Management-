@@ -59,4 +59,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 FRONTEND_URL = "https://hope-frontend-9jr0.onrender.com"
 
-# RESEND_API_KEY = ""
+DEBUG = False
+LOGGING = {
+    "version": 1,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "ERROR"},
+}
