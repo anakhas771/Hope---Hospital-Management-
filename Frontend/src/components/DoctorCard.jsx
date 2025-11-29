@@ -24,7 +24,11 @@ const DoctorCard = ({ doctor }) => {
 
   // Generate initials if no image
   const initials =
-    name?.split(" ").map((w) => w[0]).slice(0, 2).join("") || "DR";
+    name
+      ?.split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("") || "DR";
 
   // Handle booking
   const handleBook = () => {
@@ -85,6 +89,7 @@ const DoctorCard = ({ doctor }) => {
       {/* Action Button */}
       <div className="flex justify-center mt-4">
         <button
+          aria-label={`Book appointment with ${name}`}
           onClick={handleBook}
           className="w-full py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition text-white font-semibold shadow-md"
         >
