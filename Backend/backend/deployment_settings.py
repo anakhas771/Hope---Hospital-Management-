@@ -77,3 +77,11 @@ LOGGING = {
 # EMAIL_HOST_USER = os.environ.get("EMAIL_USER", "")
 # EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASS", "")
 # DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEBUG = False
+
+CORS_ALLOW_ALL_ORIGINS = True  # temporary, for testing
