@@ -19,23 +19,25 @@ const DoctorCard = ({ doctor }) => {
     department,
   } = doctor;
 
+  // API base URL
+  const API_URL = import.meta.env.VITE_API_URL;
+
   // Generate initials if no image
   const initials =
     name?.split(" ").map((w) => w[0]).slice(0, 2).join("") || "DR";
 
   // Handle booking
-const handleBook = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) {
-    alert("❌ You must be logged in to book an appointment.");
-    navigate("/login");
-    return;
-  }
-  navigate("/appointment", {
-    state: { ...doctor }, // send everything
-  });
-};
-
+  const handleBook = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      alert("❌ You must be logged in to book an appointment.");
+      navigate("/login");
+      return;
+    }
+    navigate("/appointment", {
+      state: { ...doctor }, // send everything
+    });
+  };
 
   return (
     <motion.div
@@ -51,7 +53,7 @@ const handleBook = () => {
       <div className="flex items-center gap-4">
         {profile_image ? (
           <img
-            src={profile_image}
+            src={`${API_URL}${profile_image}`}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
@@ -60,6 +62,7 @@ const handleBook = () => {
             {initials}
           </div>
         )}
+
         <div>
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-cyan-300 text-sm">{specialization}</p>
