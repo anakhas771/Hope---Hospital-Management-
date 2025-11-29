@@ -6,6 +6,12 @@ import { useNavigate } from "react-router-dom";
 const DoctorCard = ({ doctor }) => {
   const navigate = useNavigate();
 
+  const getImageUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url; // If API gives full URL
+    return `https://hope-backend-mvos.onrender.com${url}`; // Convert relative → absolute
+  };
+
   const {
     id,
     name,
@@ -57,7 +63,7 @@ const DoctorCard = ({ doctor }) => {
       <div className="flex items-center gap-4">
         {profile_image ? (
           <img
-            src={`${API_URL}${profile_image}`}
+            src={getImageUrl(profile_image)}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
