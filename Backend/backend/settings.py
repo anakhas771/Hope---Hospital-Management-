@@ -148,3 +148,5 @@ SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
 # Make Django use our custom storage backend for uploaded files
 DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseMediaStorage"
 
+# settings.py
+BACKEND_BASE_URL = "https://hope-backend-mvos.onrender.com"   # <-- VERY IMPORTANT

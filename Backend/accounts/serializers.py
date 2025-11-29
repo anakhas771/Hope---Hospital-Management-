@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import authenticate
 from .models import User, Department, Doctor, Appointment
-
+from django.conf import settings
 
 # -------------------- USER SERIALIZER --------------------
 class UserSerializer(serializers.ModelSerializer):
@@ -114,12 +114,14 @@ class DoctorSerializer(serializers.ModelSerializer):
         if not obj.profile_image:
             return None
 
-        # If Supabase backend generates a correct public URL
-        try:
-            return obj.profile_image.url   # ✔️ Works because storage backend defines .url()
-        except:
-            from django.conf import settings
-            return f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{obj.profile_image.name}"
+        # If it's already an absolute URL (cloud storage), return it
+        url = obj.profile_image.url
+        if url.startswith("http"):
+            return url
+
+        # Otherwise build full backend URL
+        backend = settings.BACKEND_BASE_URL.rstrip("/")
+        return f"{backend}{url}"
 
 
 # -------------------- APPOINTMENT SERIALIZER --------------------
