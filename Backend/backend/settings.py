@@ -1,3 +1,4 @@
+# backend/settings.py
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -5,21 +6,14 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------------------------------
-# SECURITY
-# ---------------------------------------------------------
+# -------------------- SECURITY --------------------
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="unsafe-dev-key")
 DEBUG = config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    default="*",
-    cast=lambda v: [h.strip() for h in v.split(",")]
-)
+# In development allow all hosts; change in production via deployment_settings.py
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=lambda v: [h.strip() for h in v.split(",")])
 
-# ---------------------------------------------------------
-# APPLICATIONS
-# ---------------------------------------------------------
+# -------------------- APPS --------------------
 INSTALLED_APPS = [
     "corsheaders",
     "django.contrib.admin",
@@ -29,7 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Third party
+    # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
 
@@ -37,13 +31,11 @@ INSTALLED_APPS = [
     "accounts",
 ]
 
-# ---------------------------------------------------------
-# MIDDLEWARE
-# ---------------------------------------------------------
+# -------------------- MIDDLEWARE --------------------
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",     # MUST BE FIRST
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # works in dev too
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,9 +64,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# ---------------------------------------------------------
-# DATABASE
-# ---------------------------------------------------------
+# -------------------- LOCAL DATABASE --------------------
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -83,44 +73,28 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD", default="1234"),
         "HOST": config("DB_HOST", default="127.0.0.1"),
         "PORT": config("DB_PORT", default="5432"),
-            }
+    }
 }
 
-# ---------------------------------------------------------
-# CUSTOM USER MODEL
-# ---------------------------------------------------------
+# -------------------- AUTH --------------------
 AUTH_USER_MODEL = "accounts.User"
 
-# ---------------------------------------------------------
-# STATIC & MEDIA
-# ---------------------------------------------------------
+# -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = []   # Render breaks if local static dir is added
-
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"   # FIXED ✔
+MEDIA_ROOT = BASE_DIR / "media"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]  # optional for dev
 
-# ---------------------------------------------------------
-# CORS / CSRF
-# ---------------------------------------------------------
+# -------------------- CORS --------------------
 CORS_ALLOW_ALL_ORIGINS = False
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://hope-frontend-9jr0.onrender.com",
 ]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://hope-frontend-9jr0.onrender.com",
-    "https://hope-backend-mvos.onrender.com",
-]
-
 CORS_ALLOW_CREDENTIALS = True
 
-# ---------------------------------------------------------
-# REST FRAMEWORK
-# ---------------------------------------------------------
+# -------------------- REST FRAMEWORK --------------------
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
@@ -130,17 +104,26 @@ REST_FRAMEWORK = {
     ],
 }
 
-# ---------------------------------------------------------
-# JWT
-# ---------------------------------------------------------
+# -------------------- JWT --------------------
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=30, cast=int)),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME_DAYS", default=7, cast=int)),
 }
 
-# ---------------------------------------------------------
-# LOGGING
-# ---------------------------------------------------------
+# -------------------- EMAIL (disabled by default) --------------------
+# If you later want to enable email, uncomment and set env vars in production only
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = config("EMAIL_USER", default="")
+# EMAIL_HOST_PASSWORD = config("EMAIL_PASS", default="")
+# DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+# -------------------- FRONTEND URL --------------------
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
+
+# -------------------- LOGGING --------------------
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -150,9 +133,7 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "WARNING"},
 }
 
-# ---------------------------------------------------------
-# RENDER SETTINGS
-# ---------------------------------------------------------
-if os.environ.get("RENDER"):
-    DEBUG = False
-    ALLOWED_HOSTS = ["*"]
+# -------------------- Import production overrides when running on Render or when explicitly requested
+if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER"):
+    # do not circular-import; deployment_settings.py will import this file as base
+    pass
