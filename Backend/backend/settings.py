@@ -137,3 +137,14 @@ LOGGING = {
 if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or os.environ.get("RENDER"):
     # do not circular-import; deployment_settings.py will import this file as base
     pass
+
+
+
+# settings.py (near the end, after MEDIA settings)
+SUPABASE_URL = config("SUPABASE_URL", default=None)
+SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY", default=None)
+SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
+
+# Make Django use our custom storage backend for uploaded files
+DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseMediaStorage"
+

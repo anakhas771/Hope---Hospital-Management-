@@ -90,8 +90,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 # -------------------- DOCTOR SERIALIZER --------------------
+
 class DoctorSerializer(serializers.ModelSerializer):
     department = serializers.CharField(source="department.name", read_only=True)
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Doctor
@@ -107,6 +109,17 @@ class DoctorSerializer(serializers.ModelSerializer):
             "profile_image",
             "department",
         ]
+
+    def get_profile_image(self, obj):
+        if not obj.profile_image:
+            return None
+
+        # If Supabase backend generates a correct public URL
+        try:
+            return obj.profile_image.url   # ✔️ Works because storage backend defines .url()
+        except:
+            from django.conf import settings
+            return f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{obj.profile_image.name}"
 
 
 # -------------------- APPOINTMENT SERIALIZER --------------------
