@@ -1,16 +1,9 @@
 import React from "react";
-/* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const DoctorCard = ({ doctor }) => {
   const navigate = useNavigate();
-
-  const getImageUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http")) return url; // If API gives full URL
-    return `https://hope-backend-mvos.onrender.com${url}`; // Convert relative → absolute
-  };
 
   const {
     id,
@@ -25,10 +18,6 @@ const DoctorCard = ({ doctor }) => {
     department,
   } = doctor;
 
-  // API base URL
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  // Generate initials if no image
   const initials =
     name
       ?.split(" ")
@@ -36,7 +25,6 @@ const DoctorCard = ({ doctor }) => {
       .slice(0, 2)
       .join("") || "DR";
 
-  // Handle booking
   const handleBook = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -44,9 +32,8 @@ const DoctorCard = ({ doctor }) => {
       navigate("/login");
       return;
     }
-    navigate("/appointment", {
-      state: { ...doctor }, // send everything
-    });
+
+    navigate("/appointment", { state: doctor });
   };
 
   return (
@@ -63,7 +50,7 @@ const DoctorCard = ({ doctor }) => {
       <div className="flex items-center gap-4">
         {profile_image ? (
           <img
-            src={getImageUrl(profile_image)}
+            src={profile_image}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
@@ -92,16 +79,13 @@ const DoctorCard = ({ doctor }) => {
         )}
       </div>
 
-      {/* Action Button */}
-      <div className="flex justify-center mt-4">
-        <button
-          aria-label={`Book appointment with ${name}`}
-          onClick={handleBook}
-          className="w-full py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition text-white font-semibold shadow-md"
-        >
-          Book Appointment
-        </button>
-      </div>
+      {/* Button */}
+      <button
+        onClick={handleBook}
+        className="w-full py-2 mt-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition text-white font-semibold shadow-md"
+      >
+        Book Appointment
+      </button>
     </motion.div>
   );
 };
