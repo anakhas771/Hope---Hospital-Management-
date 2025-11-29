@@ -82,7 +82,7 @@ AUTH_USER_MODEL = "accounts.User"
 # -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR.parent / "media"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # optional for dev
 
