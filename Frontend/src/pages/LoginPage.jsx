@@ -35,28 +35,37 @@ const LoginPage = () => {
       const res = await fetch(`${API_URL}/accounts/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData), // email + password
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      const text = await res.text(); // IMPORTANT: read raw text
+
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        console.error("Invalid JSON from backend:", text);
+        toast.error("Server error. Check backend logs.");
+        return;
+      }
 
       if (res.ok) {
         const userWithToken = { ...data.user, token: data.access };
         localStorage.setItem("user", JSON.stringify(userWithToken));
 
-        toast.success("✅ Login successful!");
+        toast.success("Login successful!");
         navigate("/dashboard");
       } else {
         toast.error(
           data.error ||
             data.detail ||
             data.non_field_errors?.[0] ||
-            "❌ Invalid credentials"
+            "Invalid credentials"
         );
       }
     } catch (err) {
       console.error("⚠️ Login failed:", err);
-      toast.error("Network error, try again later");
+      toast.error("Network error");
     }
   };
 
