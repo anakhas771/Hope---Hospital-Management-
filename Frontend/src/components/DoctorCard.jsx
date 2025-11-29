@@ -1,4 +1,5 @@
 import React from "react";
+/* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +19,7 @@ const DoctorCard = ({ doctor }) => {
     department,
   } = doctor;
 
+  // Generate initials if no image is provided
   const initials =
     name
       ?.split(" ")
@@ -25,6 +27,7 @@ const DoctorCard = ({ doctor }) => {
       .slice(0, 2)
       .join("") || "DR";
 
+  // Handle booking button click
   const handleBook = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -32,9 +35,11 @@ const DoctorCard = ({ doctor }) => {
       navigate("/login");
       return;
     }
-
     navigate("/appointment", { state: doctor });
   };
+
+  // Profile image URL (already absolute from backend)
+  const getImageUrl = (url) => url || "";
 
   return (
     <motion.div
@@ -46,26 +51,25 @@ const DoctorCard = ({ doctor }) => {
       whileTap={{ scale: 0.97 }}
       className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-lg text-white flex flex-col justify-between transition-all"
     >
-      {/* Top Section */}
+      {/* Top Section */}{" "}
       <div className="flex items-center gap-4">
         {profile_image ? (
           <img
-            src={profile_image}
+            src={getImageUrl(profile_image)}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
         ) : (
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-lg font-bold">
-            {initials}
+            {initials}{" "}
           </div>
         )}
-
+        ```
         <div>
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-cyan-300 text-sm">{specialization}</p>
         </div>
       </div>
-
       {/* Info Section */}
       <div className="mt-3 space-y-1 text-sm text-gray-200">
         {education && <p>🎓 {education}</p>}
@@ -78,8 +82,7 @@ const DoctorCard = ({ doctor }) => {
           </div>
         )}
       </div>
-
-      {/* Button */}
+      {/* Book Appointment Button */}
       <button
         onClick={handleBook}
         className="w-full py-2 mt-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition text-white font-semibold shadow-md"
