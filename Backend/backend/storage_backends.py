@@ -1,27 +1,35 @@
-import uuid
+# backend/storage_backends.py
+
+import base64
+import requests
 from django.core.files.storage import Storage
-from supabase import create_client
 from django.conf import settings
+from django.utils.deconstruct import deconstructible
 
+SUPABASE_URL = settings.SUPABASE_URL
+SUPABASE_KEY = settings.SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_BUCKET = settings.SUPABASE_BUCKET
+SUPABASE_STORAGE_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}"
+
+@deconstructible
 class SupabaseStorage(Storage):
-    def __init__(self):
-        self.client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
-        self.bucket = settings.SUPABASE_BUCKET
-
     def _save(self, name, content):
-        filename = f"doctors/{uuid.uuid4()}_{name.split('/')[-1]}"
-        data = content.read()
+        file_bytes = content.read()
 
-        self.client.storage.from_(self.bucket).upload(
-            path=filename,
-            file=data,
-            file_options={"content-type": "image/jpeg"},
-        )
+        url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{name}"
 
-        return filename
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/octet-stream"
+        }
+
+        res = requests.post(url, data=file_bytes, headers=headers)
+
+        if res.status_code not in (200, 201):
+            raise Exception(f"Upload failed: {res.text}")
+
+        return name
 
     def url(self, name):
-        return self.client.storage.from_(self.bucket).get_public_url(name)
-
-    def exists(self, name):
-        return False
+        return f"{SUPABASE_STORAGE_URL}/{name}"

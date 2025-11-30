@@ -69,6 +69,7 @@ class Doctor(models.Model):
     patients_count = models.IntegerField(default=0)
     profile_image = models.ImageField(upload_to="doctors/", blank=True, null=True)
 
+
     def __str__(self):
         return self.name
 
