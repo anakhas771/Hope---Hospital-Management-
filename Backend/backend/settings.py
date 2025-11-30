@@ -141,12 +141,11 @@ if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or 
 
 
 # settings.py (near the end, after MEDIA settings)
-SUPABASE_URL = config("SUPABASE_URL", default=None)
-SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY", default=None)
-SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
 
-# Make Django use our custom storage backend for uploaded files
-DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseMediaStorage"
+SUPABASE_URL = config("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
+DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseStorage"
 
 # settings.py
 BACKEND_BASE_URL = "https://hope-backend-mvos.onrender.com"   # <-- VERY IMPORTANT

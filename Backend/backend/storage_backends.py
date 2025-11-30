@@ -1,40 +1,27 @@
-
-#storage_backend.py
-import io
 import uuid
 from django.core.files.storage import Storage
+from supabase import create_client
 from django.conf import settings
-from supabase import create_client, Client
 
-
-class SupabaseMediaStorage(Storage):
+class SupabaseStorage(Storage):
     def __init__(self):
-        self.supabase: Client = create_client(
-            settings.SUPABASE_URL,
-            settings.SUPABASE_SERVICE_ROLE_KEY
-        )
+        self.client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
         self.bucket = settings.SUPABASE_BUCKET
 
     def _save(self, name, content):
-        ext = name.split('.')[-1]
-        new_name = f"doctors/{uuid.uuid4()}.{ext}"
+        filename = f"doctors/{uuid.uuid4()}_{name.split('/')[-1]}"
+        data = content.read()
 
-        file_bytes = content.read()
+        self.client.storage.from_(self.bucket).upload(
+            path=filename,
+            file=data,
+            file_options={"content-type": "image/jpeg"},
+        )
 
-        self.supabase.storage \
-            .from_(self.bucket) \
-            .upload(new_name, file_bytes, {
-                "content-type": content.content_type
-            })
-
-        return new_name
+        return filename
 
     def url(self, name):
-        signed_url = self.supabase.storage \
-            .from_(self.bucket) \
-            .get_public_url(name)
-
-        return signed_url
+        return self.client.storage.from_(self.bucket).get_public_url(name)
 
     def exists(self, name):
-        return False  # Always upload new file
+        return False

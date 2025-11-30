@@ -111,18 +111,13 @@ class DoctorSerializer(serializers.ModelSerializer):
         ]
 
     def get_profile_image(self, obj):
-        if not obj.profile_image:
-            return None
+        if obj.profile_image:
+            return obj.profile_image.url
+        return None
 
-        # If it's already an absolute URL (cloud storage), return it
-        url = obj.profile_image.url
-        if url.startswith("http"):
-            return url
-
-        # Otherwise build full backend URL
-        backend = settings.BACKEND_BASE_URL.rstrip("/")
-        return f"{backend}{url}"
-
+    class Meta:
+        model = Doctor
+        fields = "__all__"
 
 # -------------------- APPOINTMENT SERIALIZER --------------------
 class AppointmentSerializer(serializers.ModelSerializer):
