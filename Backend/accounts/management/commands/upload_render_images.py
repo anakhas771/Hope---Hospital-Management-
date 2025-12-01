@@ -1,3 +1,4 @@
+#accounts/management/commands/upload_render_images.py
 import os
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
@@ -46,8 +47,9 @@ class Command(BaseCommand):
 
                 public_url = f"{supabase_url}/storage/v1/object/public/{supabase_bucket}/doctors/{img_name}"
 
-                doctor.profile_image = public_url
+                doctor.profile_image.name = f"doctors/{img_name}"
                 doctor.save()
+
 
                 self.stdout.write(self.style.SUCCESS(f"Uploaded -> {doctor.name}"))
                 uploaded += 1

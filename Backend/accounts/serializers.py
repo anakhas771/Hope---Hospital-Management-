@@ -102,8 +102,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         if not obj.profile_image:
             return None
 
-        # For Supabase public bucket
-        return f"{settings.SUPABASE_PUBLIC_URL}/{obj.profile_image}"
+        return f"{settings.SUPABASE_PUBLIC_URL}/{obj.profile_image.name}"
 
 
 
