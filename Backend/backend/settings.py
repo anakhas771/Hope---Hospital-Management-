@@ -142,9 +142,14 @@ if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or 
 
 # settings.py (near the end, after MEDIA settings)
 
+# -------------------- SUPABASE STORAGE --------------------
 SUPABASE_URL = config("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY")
 SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
+
+# Public bucket base URL
+SUPABASE_STORAGE_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}"
+
 DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseStorage"
 
 # settings.py

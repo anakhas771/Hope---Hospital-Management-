@@ -92,34 +92,24 @@ class DepartmentSerializer(serializers.ModelSerializer):
 # -------------------- DOCTOR SERIALIZER --------------------
 
 class DoctorSerializer(serializers.ModelSerializer):
-    department = serializers.CharField(source="department.name", read_only=True)
     profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Doctor
-        fields = [
-            "id",
-            "name",
-            "specialization",
-            "education",
-            "experience",
-            "availability",
-            "rating",
-            "patients_count",
-            "profile_image",
-            "department",
-        ]
+        fields = "__all__"
 
     def get_profile_image(self, obj):
         if not obj.profile_image:
             return None
 
-        # If already a full URL (Supabase returns full public URLs)
-        if str(obj.profile_image).startswith("http"):
-            return str(obj.profile_image)
+        # Already full URL?
+        url = str(obj.profile_image)
+        if url.startswith("http"):
+            return url
 
-        # Manual fallback if old /media/ paths exist
+        # Supabase public bucket
         return f"{settings.SUPABASE_STORAGE_URL}/{obj.profile_image}"
+
 
 
  
