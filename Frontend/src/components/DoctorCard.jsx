@@ -15,11 +15,12 @@ const DoctorCard = ({ doctor }) => {
     availability,
     rating,
     patients_count,
-    profile_image,
+    profile_image, // still keeping (not required but ok)
+    profile_image_url, // IMPORTANT: backend returns this
     department,
   } = doctor;
 
-  // Generate initials if no image is provided
+  // Generate initials if no image
   const initials =
     name
       ?.split(" ")
@@ -27,7 +28,7 @@ const DoctorCard = ({ doctor }) => {
       .slice(0, 2)
       .join("") || "DR";
 
-  // Handle booking button click
+  // Handle booking
   const handleBook = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -37,9 +38,6 @@ const DoctorCard = ({ doctor }) => {
     }
     navigate("/appointment", { state: doctor });
   };
-
-  // Profile image URL (already absolute from backend)
-  const getImageUrl = (url) => url || "";
 
   return (
     <motion.div
@@ -51,30 +49,33 @@ const DoctorCard = ({ doctor }) => {
       whileTap={{ scale: 0.97 }}
       className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-lg text-white flex flex-col justify-between transition-all"
     >
-      {/* Top Section */}{" "}
+      {/* Doctor Image Section */}
       <div className="flex items-center gap-4">
-        {profile_image ? (
+        {profile_image_url ? (
           <img
-            src={getImageUrl(profile_image)}
+            src={profile_image_url}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
         ) : (
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-lg font-bold">
-            {initials}{" "}
+            {initials}
           </div>
         )}
-        ```
-        <div>
-          <h3 className="text-lg font-semibold">{name}</h3>
-          <p className="text-cyan-300 text-sm">{specialization}</p>
-        </div>
       </div>
-      {/* Info Section */}
+
+      {/* Name & Specialization */}
+      <div className="mt-3">
+        <h3 className="text-lg font-semibold">{name}</h3>
+        <p className="text-cyan-300 text-sm">{specialization}</p>
+      </div>
+
+      {/* Doctor Info */}
       <div className="mt-3 space-y-1 text-sm text-gray-200">
         {education && <p>🎓 {education}</p>}
         {experience && <p>🧑‍⚕️ {experience}</p>}
         {availability && <p>⏰ {availability}</p>}
+
         {(rating || patients_count) && (
           <div className="flex gap-4 pt-1 text-xs text-gray-300">
             {rating && <span>⭐ {rating}</span>}
@@ -82,6 +83,7 @@ const DoctorCard = ({ doctor }) => {
           </div>
         )}
       </div>
+
       {/* Book Appointment Button */}
       <button
         onClick={handleBook}
