@@ -28,12 +28,17 @@ const DoctorCard = ({ doctor }) => {
       .join("") || "DR";
 
   // Full image URL (Render backend + media path)
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    return `https://hope-backend-mvos.onrender.com${imagePath}`;
-  };
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
 
-  const profileImageUrl = getImageUrl(profile_image);
+  if (imagePath.startsWith("http")) {
+    return imagePath; // Full Supabase URL
+  }
+
+  return `https://hope-backend-mvos.onrender.com${imagePath}`;
+};
+
+const profileImageUrl = getImageUrl(profile_image);
 
   // Booking button
   const handleBook = () => {
