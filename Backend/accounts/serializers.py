@@ -118,10 +118,7 @@ class DoctorSerializer(serializers.ModelSerializer):
                 return None
         return None
 
-    class Meta:
-        model = Doctor
-        fields = "__all__"
-
+ 
 # -------------------- APPOINTMENT SERIALIZER --------------------
 class AppointmentSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
