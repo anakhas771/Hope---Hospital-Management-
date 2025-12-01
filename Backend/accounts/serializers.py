@@ -102,13 +102,8 @@ class DoctorSerializer(serializers.ModelSerializer):
         if not obj.profile_image:
             return None
 
-        # Already full URL?
-        url = str(obj.profile_image)
-        if url.startswith("http"):
-            return url
-
-        # Supabase public bucket
-        return f"{settings.SUPABASE_STORAGE_URL}/{obj.profile_image}"
+        # For Supabase public bucket
+        return f"{settings.SUPABASE_PUBLIC_URL}/{obj.profile_image}"
 
 
 

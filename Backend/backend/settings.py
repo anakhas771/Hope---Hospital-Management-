@@ -81,8 +81,6 @@ AUTH_USER_MODEL = "accounts.User"
 
 # -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # optional for dev
 
@@ -140,17 +138,17 @@ if os.environ.get("DJANGO_SETTINGS_MODULE") == "backend.deployment_settings" or 
 
 
 
-# settings.py (near the end, after MEDIA settings)
-
 # -------------------- SUPABASE STORAGE --------------------
 SUPABASE_URL = config("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = config("SUPABASE_SERVICE_ROLE_KEY")  # service role key
 SUPABASE_BUCKET = config("SUPABASE_BUCKET", default="media")
 
-# Public bucket base URL
-SUPABASE_STORAGE_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}"
+# Correct public access URL for Supabase bucket:
+# https://<project>.supabase.co/storage/v1/object/public/<bucket>/
+SUPABASE_PUBLIC_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}"
 
 DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseStorage"
+
 
 # settings.py
 BACKEND_BASE_URL = "https://hope-backend-mvos.onrender.com"   # <-- VERY IMPORTANT
