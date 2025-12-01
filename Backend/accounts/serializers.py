@@ -111,12 +111,16 @@ class DoctorSerializer(serializers.ModelSerializer):
         ]
 
     def get_profile_image(self, obj):
-        if obj.profile_image:
-            try:
-                return obj.profile_image.url   # Supabase file public URL
-            except:
-                return None
-        return None
+        if not obj.profile_image:
+            return None
+
+        # If already a full URL (Supabase returns full public URLs)
+        if str(obj.profile_image).startswith("http"):
+            return str(obj.profile_image)
+
+        # Manual fallback if old /media/ paths exist
+        return f"{settings.SUPABASE_STORAGE_URL}/{obj.profile_image}"
+
 
  
 # -------------------- APPOINTMENT SERIALIZER --------------------
