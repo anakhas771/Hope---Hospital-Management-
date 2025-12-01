@@ -1,3 +1,4 @@
+// components/DoctorCard.jsx
 import React from "react";
 /* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
@@ -30,10 +31,8 @@ const DoctorCard = ({ doctor }) => {
   // Full image URL (Render backend + media path)
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-
-  if (imagePath.startsWith("http")) {
-    return imagePath; // Full Supabase URL
-  }
+  return imagePath; // already full Supabase URL
+};
 
   return `https://hope-backend-mvos.onrender.com${imagePath}`;
 };
