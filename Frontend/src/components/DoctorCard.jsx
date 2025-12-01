@@ -15,12 +15,11 @@ const DoctorCard = ({ doctor }) => {
     availability,
     rating,
     patients_count,
-    profile_image, // still keeping (not required but ok)
-    profile_image_url, // IMPORTANT: backend returns this
+    profile_image,
     department,
   } = doctor;
 
-  // Generate initials if no image
+  // Create initials when no profile image exists
   const initials =
     name
       ?.split(" ")
@@ -28,7 +27,15 @@ const DoctorCard = ({ doctor }) => {
       .slice(0, 2)
       .join("") || "DR";
 
-  // Handle booking
+  // Full image URL (Render backend + media path)
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    return `https://hope-backend-mvos.onrender.com${imagePath}`;
+  };
+
+  const profileImageUrl = getImageUrl(profile_image);
+
+  // Booking button
   const handleBook = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -49,11 +56,11 @@ const DoctorCard = ({ doctor }) => {
       whileTap={{ scale: 0.97 }}
       className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-lg text-white flex flex-col justify-between transition-all"
     >
-      {/* Doctor Image Section */}
+      {/* Top Section */}
       <div className="flex items-center gap-4">
-        {profile_image_url ? (
+        {profileImageUrl ? (
           <img
-            src={profile_image_url}
+            src={profileImageUrl}
             alt={name}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
@@ -64,13 +71,12 @@ const DoctorCard = ({ doctor }) => {
         )}
       </div>
 
-      {/* Name & Specialization */}
-      <div className="mt-3">
+      <div>
         <h3 className="text-lg font-semibold">{name}</h3>
         <p className="text-cyan-300 text-sm">{specialization}</p>
       </div>
 
-      {/* Doctor Info */}
+      {/* Info Section */}
       <div className="mt-3 space-y-1 text-sm text-gray-200">
         {education && <p>🎓 {education}</p>}
         {experience && <p>🧑‍⚕️ {experience}</p>}
