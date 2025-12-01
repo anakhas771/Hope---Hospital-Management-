@@ -110,7 +110,13 @@ class DoctorSerializer(serializers.ModelSerializer):
             "department",
         ]
 
-    
+    def get_profile_image(self, obj):
+        if obj.profile_image:
+            try:
+                return obj.profile_image.url   # Supabase file public URL
+            except:
+                return None
+        return None
 
     class Meta:
         model = Doctor
