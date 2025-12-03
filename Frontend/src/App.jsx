@@ -131,15 +131,18 @@ function AppContent() {
           <Route
             path="/dashboard"
             element={
-              <PageWrapper>
-                <Navbar />
-                <GlassSection>
-                  <DashboardPage />
-                </GlassSection>
-                <Footer />
-              </PageWrapper>
+              <ProtectedRoute>
+                <PageWrapper>
+                  <Navbar />
+                  <GlassSection>
+                    <DashboardPage />
+                  </GlassSection>
+                  <Footer />
+                </PageWrapper>
+              </ProtectedRoute>
             }
           />
+
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/payment" element={<PaymentPage />} />
 
