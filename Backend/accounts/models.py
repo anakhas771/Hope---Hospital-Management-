@@ -1,8 +1,9 @@
 # accounts/models.py
+import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
-
+from django.utils.timezone import now
 
 # -------------------- CUSTOM USER MANAGER --------------------
 class CustomUserManager(BaseUserManager):
@@ -56,6 +57,11 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
+# -------------------- DOCTOR UPLOAD PATH --------------------
+def doctor_upload_path(instance, filename):
+    base, ext = os.path.splitext(filename)
+    timestamp = now().strftime("%Y%m%d%H%M%S")
+    return f"doctors/{base}_{timestamp}{ext}"
 
 # -------------------- DOCTOR --------------------
 class Doctor(models.Model):
@@ -67,8 +73,9 @@ class Doctor(models.Model):
     availability = models.CharField(max_length=200)
     rating = models.FloatField(default=0)
     patients_count = models.IntegerField(default=0)
-    profile_image = models.ImageField(upload_to="doctors/", blank=True, null=True)
+    profile_image = models.ImageField(upload_to=doctor_upload_path, blank=True, null=True)
 
+    
 
     def __str__(self):
         return self.name
@@ -107,3 +114,4 @@ class UserPasswordResetToken(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.token}"
+    
