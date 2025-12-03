@@ -56,9 +56,7 @@ const DashboardPage = () => {
         token
       );
 
-      const list = Array.isArray(data)
-        ? data
-        : data.appointments || [];
+      const list = Array.isArray(data) ? data : data.appointments || [];
 
       const mapped = list.map((appt) => ({
         id: appt.id,
@@ -108,7 +106,8 @@ const DashboardPage = () => {
     );
 
     setTimeout(async () => {
-      const stillCancelled = appointments.find((a) => a.id === apptId)?.status === "cancelled-temp";
+      const stillCancelled =
+        appointments.find((a) => a.id === apptId)?.status === "cancelled-temp";
       if (stillCancelled) {
         try {
           await apiFetch(
@@ -118,9 +117,7 @@ const DashboardPage = () => {
             user.token
           );
 
-          setAppointments((prev) =>
-            prev.filter((a) => a.id !== apptId)
-          );
+          setAppointments((prev) => prev.filter((a) => a.id !== apptId));
           toast.dismiss(toastId);
           toast.success("Appointment cancelled.");
         } catch (err) {
@@ -132,9 +129,7 @@ const DashboardPage = () => {
 
   const undoCancel = (apptId, toastId) => {
     setAppointments((prev) =>
-      prev.map((a) =>
-        a.id === apptId ? { ...a, status: "paid" } : a
-      )
+      prev.map((a) => (a.id === apptId ? { ...a, status: "paid" } : a))
     );
     toast.dismiss(toastId);
     toast.success("Appointment restored.");
@@ -145,14 +140,12 @@ const DashboardPage = () => {
 
   const upcomingAppointments = appointments.filter(
     (appt) =>
-      new Date(appt.date_time) >= new Date() &&
-      appt.status !== "cancelled-temp"
+      new Date(appt.date_time) >= new Date() && appt.status !== "cancelled-temp"
   );
 
   const pastAppointments = appointments.filter(
     (appt) =>
-      new Date(appt.date_time) < new Date() &&
-      appt.status !== "cancelled-temp"
+      new Date(appt.date_time) < new Date() && appt.status !== "cancelled-temp"
   );
 
   const formatDate = (dateStr) => {
@@ -167,65 +160,89 @@ const DashboardPage = () => {
     });
   };
 
-
   return (
-    <div className="flex flex-col gap-8 pt-16 px-4 md:px-12 text-white">
+    <div className="pt-20 px-4 md:px-12 text-white space-y-10">
       <Toaster position="bottom-center" />
 
-      {/* -------------- Profile + Stats ---------------- */}
-      <motion.div
-        className="flex flex-col md:flex-row gap-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl w-full md:w-1/4 border border-white/20 shadow-lg">
-          <h3 className="text-xl font-semibold mb-6">Profile</h3>
-          <div className="space-y-3">
-            <p><span className="font-semibold">Name:</span> {user.full_name}</p>
-            <p><span className="font-semibold">Email:</span> {user.email}</p>
+      {/* ---------------- HEADER ---------------- */}
+      <div>
+        <h1 className="text-3xl font-bold">Welcome, {user.full_name}</h1>
+        <p className="text-white/60 mt-1">
+          Here is your latest health activity.
+        </p>
+      </div>
+
+      {/* ---------------- TOP GRID ---------------- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Card */}
+        <motion.div
+          className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 shadow-xl flex flex-col"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h3 className="text-xl font-semibold mb-6">Your Profile</h3>
+
+          <div className="space-y-3 text-white/90">
             <p>
-              <span className="font-semibold">Member Since:</span>{" "}
-              {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
+              <span className="font-semibold text-white">Name:</span>{" "}
+              {user.full_name}
+            </p>
+            <p>
+              <span className="font-semibold text-white">Email:</span>{" "}
+              {user.email}
+            </p>
+            <p>
+              <span className="font-semibold text-white">Joined:</span>{" "}
+              {user.date_joined
+                ? new Date(user.date_joined).toLocaleDateString()
+                : "N/A"}
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="flex-1 grid grid-cols-1 gap-6">
-          <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-lg">
-            <h4 className="font-semibold mb-2">Upcoming Appointments</h4>
-            <p className="text-3xl font-bold">{upcomingAppointments.length}</p>
+        {/* Stats Cards */}
+        <div className="lg:col-span-2 grid grid-cols-2 gap-6">
+          <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-xl flex flex-col justify-center">
+            <h4 className="text-lg font-semibold mb-1 text-white/80">
+              Upcoming Appointments
+            </h4>
+            <p className="text-4xl font-bold">{upcomingAppointments.length}</p>
           </motion.div>
 
-          <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-lg">
-            <h4 className="font-semibold mb-2">Past Appointments</h4>
-            <p className="text-3xl font-bold">{pastAppointments.length}</p>
+          <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-xl flex flex-col justify-center">
+            <h4 className="text-lg font-semibold mb-1 text-white/80">
+              Past Appointments
+            </h4>
+            <p className="text-4xl font-bold">{pastAppointments.length}</p>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* ------------------ Appointment Lists ------------------ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* ---------------- APPOINTMENT SECTION ---------------- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Upcoming Appointments */}
+        <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-xl">
+          <h3 className="text-2xl font-semibold mb-5">Upcoming Appointments</h3>
 
-        {/* Upcoming */}
-        <motion.div
-          className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-lg"
-        >
-          <h3 className="text-xl font-semibold mb-4">Upcoming Appointments</h3>
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-white/70">Loading...</p>
           ) : upcomingAppointments.length ? (
-            <ul className="space-y-2">
+            <ul className="space-y-4">
               {upcomingAppointments.map((appt) => (
                 <li
                   key={appt.id}
-                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
+                  className="bg-white/20 rounded-xl p-4 flex justify-between items-center shadow-sm"
                 >
-                  <span>
-                    {formatDate(appt.date_time)} - {appt.doctor} ({appt.status})
-                  </span>
+                  <div className="text-white/90">
+                    <p className="font-semibold">{appt.doctor}</p>
+                    <p className="text-sm text-white/60">
+                      {formatDate(appt.date_time)}
+                    </p>
+                  </div>
+
                   <button
                     onClick={() => cancelAppointment(appt.id)}
-                    className="px-3 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm"
+                    className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm"
                   >
                     Cancel
                   </button>
@@ -233,30 +250,35 @@ const DashboardPage = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-300">No upcoming appointments.</p>
+            <p className="text-white/60 text-center">
+              No upcoming appointments.
+            </p>
           )}
         </motion.div>
 
-        {/* Past */}
-        <motion.div
-          className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-lg"
-        >
-          <h3 className="text-xl font-semibold mb-4">Past Appointments</h3>
+        {/* Past Appointments */}
+        <motion.div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-xl">
+          <h3 className="text-2xl font-semibold mb-5">Past Appointments</h3>
+
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-white/70">Loading...</p>
           ) : pastAppointments.length ? (
-            <ul className="space-y-2">
+            <ul className="space-y-4">
               {pastAppointments.map((appt) => (
                 <li
                   key={appt.id}
-                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
+                  className="bg-white/20 rounded-xl p-4 flex justify-between items-center shadow-sm"
                 >
-                  <span>
-                    {formatDate(appt.date_time)} - {appt.doctor} ({appt.status})
-                  </span>
+                  <div className="text-white/90">
+                    <p className="font-semibold">{appt.doctor}</p>
+                    <p className="text-sm text-white/60">
+                      {formatDate(appt.date_time)}
+                    </p>
+                  </div>
+
                   <button
                     onClick={() => cancelAppointment(appt.id)}
-                    className="px-3 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm"
+                    className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm"
                   >
                     Delete
                   </button>
@@ -264,7 +286,7 @@ const DashboardPage = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-300">No past appointments.</p>
+            <p className="text-white/60 text-center">No past appointments.</p>
           )}
         </motion.div>
       </div>
