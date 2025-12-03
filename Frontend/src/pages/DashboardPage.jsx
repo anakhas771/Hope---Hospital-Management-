@@ -13,7 +13,6 @@ const DashboardPage = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const access = localStorage.getItem("access");
-
     if (!storedUser || !access) return;
 
     try {
@@ -39,17 +38,38 @@ const DashboardPage = () => {
       setLoading(true);
       const data = await apiFetch(`/appointments/?user=${userId}`, "GET", null, token);
       const list = Array.isArray(data) ? data : data.appointments || [];
-      const mapped = list.map((appt) => ({
+      setAppointments(list.map((appt) => ({
         id: appt.id,
         doctor: appt.doctor?.name || "Unknown",
         date_time: appt.date_time,
         status: appt.status || "pending",
-      }));
-      setAppointments(mapped);
+      })));
     } catch (err) {
-      toast.error("Failed to fetch appointments.");
+      toast.error("Failed to fetch appointments");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cancelAppointment = async (id) => {
+    try {
+      await apiFetch(`/appointments/${id}/`, "DELETE", null, user.token);
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+      toast.success("Appointment cancelled successfully!", { duration: 3000 });
+    } catch (err) {
+      toast.error("Failed to cancel appointment.", { duration: 3000 });
+    }
+  };
+
+  const markPaid = async (id) => {
+    try {
+      // Simulate API call to mark paid
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: "paid" } : a))
+      );
+      toast.success("Appointment marked as Paid!", { duration: 3000 });
+    } catch (err) {
+      toast.error("Failed to update payment.", { duration: 3000 });
     }
   };
 
@@ -67,75 +87,75 @@ const DashboardPage = () => {
 
   if (!user) return <p className="text-center mt-10 text-white">Loading...</p>;
 
-  const upcomingAppointments = appointments.filter(appt => new Date(appt.date_time) >= new Date());
-  const pastAppointments = appointments.filter(appt => new Date(appt.date_time) < new Date());
-
   return (
     <div className="min-h-screen px-4 md:px-12 py-12 text-white bg-transparent">
       <Toaster position="bottom-center" />
 
-      <div className="flex flex-col md:flex-row gap-8">
+      {/* ---------- User Profile Card ---------- */}
+      <motion.div
+        className="max-w-md mx-auto bg-white/10 backdrop-blur-2xl border border-white/20 shadow-lg rounded-2xl p-8 mb-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-3xl font-bold mb-3">{user.full_name}</h2>
+        <p className="text-gray-300 mb-1">{user.email}</p>
+        <p className="text-gray-300">
+          Member Since: {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
+        </p>
+      </motion.div>
 
-        {/* --------- Left Panel: Profile & Stats --------- */}
-        <motion.div
-          className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-lg w-full md:w-1/3 border border-white/20 flex flex-col gap-6"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          <h2 className="text-2xl font-bold">{user.full_name}</h2>
-          <p className="text-gray-300">{user.email}</p>
-          <p className="text-gray-300">
-            Member Since: {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
-          </p>
-
-          <div className="flex flex-col gap-4 mt-4">
-            <div className="bg-white/20 p-4 rounded-xl shadow flex justify-between items-center">
-              <span className="text-gray-200 font-medium">Upcoming</span>
-              <span className="text-xl font-bold">{upcomingAppointments.length}</span>
-            </div>
-            <div className="bg-white/20 p-4 rounded-xl shadow flex justify-between items-center">
-              <span className="text-gray-200 font-medium">Past</span>
-              <span className="text-xl font-bold">{pastAppointments.length}</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* --------- Right Panel: Appointments --------- */}
-        <motion.div
-          className="flex-1 flex flex-col gap-6"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          {/* Upcoming Appointments */}
-          <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/20 flex flex-col gap-3">
-            <h3 className="text-xl font-semibold text-center">Upcoming Appointments</h3>
-            {loading ? <p className="text-center">Loading...</p> : upcomingAppointments.length ? (
-              <ul className="space-y-2">
-                {upcomingAppointments.map(appt => (
-                  <li key={appt.id} className="bg-white/20 p-3 rounded-xl flex justify-between items-center text-gray-100 hover:bg-white/30 transition">
-                    <span>{formatDate(appt.date_time)} - {appt.doctor}</span>
-                    <span className="text-sm text-gray-300">{appt.status}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-center text-gray-400">No upcoming appointments.</p>}
-          </div>
-
-          {/* Past Appointments */}
-          <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/20 flex flex-col gap-3">
-            <h3 className="text-xl font-semibold text-center">Past Appointments</h3>
-            {loading ? <p className="text-center">Loading...</p> : pastAppointments.length ? (
-              <ul className="space-y-2">
-                {pastAppointments.map(appt => (
-                  <li key={appt.id} className="bg-white/20 p-3 rounded-xl flex justify-between items-center text-gray-100 hover:bg-white/30 transition">
-                    <span>{formatDate(appt.date_time)} - {appt.doctor}</span>
-                    <span className="text-sm text-gray-300">{appt.status}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-center text-gray-400">No past appointments.</p>}
-          </div>
-        </motion.div>
+      {/* ---------- Appointments List ---------- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {loading ? (
+          <p className="text-center col-span-2">Loading appointments...</p>
+        ) : appointments.length ? (
+          appointments.map((appt) => (
+            <motion.div
+              key={appt.id}
+              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-5 flex flex-col justify-between transition-transform hover:scale-105 hover:shadow-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="text-xl font-semibold">{appt.doctor}</h4>
+                  <p className="text-gray-300">{formatDate(appt.date_time)}</p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    appt.status === "paid"
+                      ? "bg-green-500 text-white"
+                      : appt.status === "pending"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-red-500 text-white"
+                  }`}
+                >
+                  {appt.status.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex gap-3 mt-2">
+                {appt.status !== "paid" && (
+                  <button
+                    onClick={() => markPaid(appt.id)}
+                    className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 transition-colors rounded-xl text-white font-semibold"
+                  >
+                    Mark Paid
+                  </button>
+                )}
+                <button
+                  onClick={() => cancelAppointment(appt.id)}
+                  className="flex-1 py-2 bg-red-500 hover:bg-red-600 transition-colors rounded-xl text-white font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <p className="text-center text-gray-400 col-span-2">No appointments available.</p>
+        )}
       </div>
     </div>
   );
