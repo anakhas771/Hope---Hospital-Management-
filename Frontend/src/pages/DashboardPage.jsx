@@ -100,7 +100,7 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="min-h-screen flex text-white bg-gradient-to-b from-black via-[#0f0f0f] to-black">
+    <div className="min-h-screen flex text-white ">
       <Toaster position="bottom-center" />
 
       {/* ------------------ SIDEBAR ------------------ */}
