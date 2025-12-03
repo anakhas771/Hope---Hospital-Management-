@@ -40,6 +40,7 @@ import RadiologyPage from "./pages/RadiologyPage";
 import DashboardPage from "./pages/DashboardPage";
 import AppointmentPage from "./pages/AppointmentPage";
 import PaymentPage from "./pages/PaymentPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // GlassSection wrapper
 const GlassSection = ({ children }) => (

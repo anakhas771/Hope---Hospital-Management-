@@ -1,7 +1,8 @@
 // src/components/ProtectedRoute.jsx
+import React from "react";
 import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children }) {
+const ProtectedRoute = ({ children }) => {
   const access = localStorage.getItem("access");
 
   if (!access) {
@@ -9,4 +10,6 @@ export default function ProtectedRoute({ children }) {
   }
 
   return children;
-}
+};
+
+export default ProtectedRoute;
