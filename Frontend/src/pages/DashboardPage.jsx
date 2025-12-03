@@ -15,16 +15,29 @@ const DashboardPage = () => {
   // -------------------- Load User --------------------
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) return navigate("/login");
+    const access = localStorage.getItem("access");
+
+    if (!storedUser || !access) {
+      return navigate("/login");
+    }
 
     try {
       const userData = JSON.parse(storedUser);
-      if (!userData.token) return navigate("/login");
 
-      const fullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
-      setUser({ ...userData, full_name: fullName });
+      // Attach token into user object
+      const finalUser = {
+        ...userData,
+        token: access, // FIXED ✔
+        full_name:
+          `${userData.first_name || ""} ${userData.last_name || ""}`.trim() ||
+          userData.name ||
+          userData.full_name ||
+          "",
+      };
 
-      fetchAppointments(userData.token, userData.id);
+      setUser(finalUser);
+
+      fetchAppointments(access, userData.id);
     } catch (err) {
       navigate("/login");
     }
@@ -35,11 +48,17 @@ const DashboardPage = () => {
     try {
       setLoading(true);
 
-      const data = await apiFetch(`/appointments/?user=${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // FIXED ✔ PROPER apiFetch usage
+      const data = await apiFetch(
+        `/appointments/?user=${userId}`,
+        "GET",
+        null,
+        token
+      );
 
-      const list = Array.isArray(data) ? data : data.appointments || [];
+      const list = Array.isArray(data)
+        ? data
+        : data.appointments || [];
 
       const mapped = list.map((appt) => ({
         id: appt.id,
@@ -57,6 +76,7 @@ const DashboardPage = () => {
     } catch (err) {
       toast.error("Session expired. Please login again.");
       localStorage.removeItem("user");
+      localStorage.removeItem("access");
       navigate("/login");
     } finally {
       setLoading(false);
@@ -68,7 +88,6 @@ const DashboardPage = () => {
     const appt = appointments.find((a) => a.id === apptId);
     if (!appt) return;
 
-    // Temporary cancel (Undo)
     setAppointments((prev) =>
       prev.map((a) =>
         a.id === apptId ? { ...a, status: "cancelled-temp" } : a
@@ -92,12 +111,16 @@ const DashboardPage = () => {
       const stillCancelled = appointments.find((a) => a.id === apptId)?.status === "cancelled-temp";
       if (stillCancelled) {
         try {
-          await apiFetch(`/appointments/${apptId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
+          await apiFetch(
+            `/appointments/${apptId}/`,
+            "DELETE",
+            null,
+            user.token
+          );
 
-          setAppointments((prev) => prev.filter((a) => a.id !== apptId));
+          setAppointments((prev) =>
+            prev.filter((a) => a.id !== apptId)
+          );
           toast.dismiss(toastId);
           toast.success("Appointment cancelled.");
         } catch (err) {
@@ -117,14 +140,19 @@ const DashboardPage = () => {
     toast.success("Appointment restored.");
   };
 
-  if (!user) return <p className="text-center mt-10 text-white">Loading user...</p>;
+  if (!user)
+    return <p className="text-center mt-10 text-white">Loading user...</p>;
 
   const upcomingAppointments = appointments.filter(
-    (appt) => new Date(appt.date_time) >= new Date() && appt.status !== "cancelled-temp"
+    (appt) =>
+      new Date(appt.date_time) >= new Date() &&
+      appt.status !== "cancelled-temp"
   );
 
   const pastAppointments = appointments.filter(
-    (appt) => new Date(appt.date_time) < new Date() && appt.status !== "cancelled-temp"
+    (appt) =>
+      new Date(appt.date_time) < new Date() &&
+      appt.status !== "cancelled-temp"
   );
 
   const formatDate = (dateStr) => {
@@ -138,6 +166,7 @@ const DashboardPage = () => {
       minute: "2-digit",
     });
   };
+
 
   return (
     <div className="flex flex-col gap-8 pt-16 px-4 md:px-12 text-white">

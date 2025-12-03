@@ -60,6 +60,7 @@ const LoginPage = () => {
             id: data.user?.id,
             email: data.user?.email,
             name: data.user?.full_name,
+            token: access, // ⬅️ ADD THIS
           })
         );
 
