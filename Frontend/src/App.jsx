@@ -90,13 +90,11 @@ function AppContent() {
                 key={item.path}
                 path={item.path}
                 element={
-                  <PageWrapper>
-                    <div className="flex items-center justify-center min-h-screen px-6">
-                      <GlassSection>
-                        <Component />
-                      </GlassSection>
-                    </div>
-                  </PageWrapper>
+                  <div className="flex items-center justify-center min-h-screen px-6">
+                    <GlassSection>
+                      <Component />
+                    </GlassSection>
+                  </div>
                 }
               />
             );
