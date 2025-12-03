@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
+// src/pages/DashboardPage.jsx
 import React, { useEffect, useState } from "react";
+/* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { apiFetch } from "../lib/api";
 
@@ -9,20 +9,18 @@ const DashboardPage = () => {
   const [user, setUser] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
-  // ---------------- LOAD USER ----------------
+  // -------------------- Load User --------------------
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const access = localStorage.getItem("access");
 
-    if (!storedUser || !access) {
-      return navigate("/login");
-    }
+    if (!storedUser || !access) return;
 
     try {
       const userData = JSON.parse(storedUser);
-      setUser({
+
+      const finalUser = {
         ...userData,
         token: access,
         full_name:
@@ -30,215 +28,145 @@ const DashboardPage = () => {
           userData.name ||
           userData.full_name ||
           "",
-      });
+      };
 
+      setUser(finalUser);
       fetchAppointments(access, userData.id);
     } catch (err) {
-      navigate("/login");
+      console.error(err);
     }
   }, []);
 
-  // ------------------- FETCH APPOINTMENTS -------------------
+  // -------------------- Fetch Appointments --------------------
   const fetchAppointments = async (token, userId) => {
     try {
       setLoading(true);
       const data = await apiFetch(`/appointments/?user=${userId}`, "GET", null, token);
-
       const list = Array.isArray(data) ? data : data.appointments || [];
-
       const mapped = list.map((appt) => ({
         id: appt.id,
         doctor: appt.doctor?.name || "Unknown",
         date_time: appt.date_time,
         status: appt.status || "pending",
-        amount: appt.amount || 0,
-        payment_status: appt.payment_status || "",
       }));
-
       setAppointments(mapped);
     } catch (err) {
-      toast.error("Session expired. Please login again.");
-      localStorage.clear();
-      navigate("/login");
+      toast.error("Failed to fetch appointments.");
     } finally {
       setLoading(false);
     }
   };
 
-  // --------------- CANCEL APPOINTMENT ---------------
-  const cancelAppointment = (id) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "cancelled-temp" } : a))
-    );
-
-    toast.success("Appointment cancelled temporarily (Undo available)");
-  };
-
-  // --------------- DATE FORMAT ---------------
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return d.toLocaleString("en-IN", {
       weekday: "short",
       day: "numeric",
       month: "short",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  if (!user)
-    return (
-      <p className="text-center mt-20 text-white text-xl">Loading user...</p>
-    );
-
-  const upcoming = appointments.filter(
-    (a) => new Date(a.date_time) >= new Date() && a.status !== "cancelled-temp"
+  const upcomingAppointments = appointments.filter(
+    (appt) => new Date(appt.date_time) >= new Date()
   );
 
-  const past = appointments.filter(
-    (a) => new Date(a.date_time) < new Date() && a.status !== "cancelled-temp"
+  const pastAppointments = appointments.filter(
+    (appt) => new Date(appt.date_time) < new Date()
   );
+
+  if (!user) return <p className="text-center mt-10 text-white">Loading...</p>;
 
   return (
-    <div className="min-h-screen flex text-white ">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 text-white">
       <Toaster position="bottom-center" />
 
-      {/* ------------------ SIDEBAR ------------------ */}
-      <aside className="hidden md:flex flex-col w-64 p-6 bg-white/10 backdrop-blur-xl border-r border-white/20">
-        <h2 className="text-2xl font-semibold mb-8">Dashboard</h2>
+      {/* ---------- Profile Card ---------- */}
+      <motion.div
+        className="bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-lg text-center w-full max-w-md border border-white/20"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-3xl font-bold mb-4">{user.full_name}</h2>
+        <p className="text-gray-300 mb-2">{user.email}</p>
+        <p className="text-gray-300">
+          Member Since: {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
+        </p>
+      </motion.div>
 
-        <div className="p-4 bg-white/10 rounded-xl border border-white/20 mb-8">
-          <p className="text-lg font-semibold">{user.full_name}</p>
-          <p className="text-sm text-gray-300">{user.email}</p>
-        </div>
-
-        <nav className="flex flex-col gap-4">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-left py-2 px-4 rounded-lg bg-blue-500/20 border border-blue-400/30"
-          >
-            Appointments
-          </button>
-
-          <button
-            onClick={() => {
-              localStorage.clear();
-              navigate("/login");
-            }}
-            className="text-left py-2 px-4 rounded-lg bg-red-500/20 border border-red-400/30"
-          >
-            Logout
-          </button>
-        </nav>
-      </aside>
-
-      {/* ------------------ MAIN CONTENT ------------------ */}
-      <main className="flex-1 p-6 md:p-10">
-
-        {/* ----------- HEADER (visible on mobile) ----------- */}
-        <div className="md:hidden mb-6">
-          <h2 className="text-2xl font-semibold">Dashboard</h2>
-          <p className="text-gray-300">{user.full_name}</p>
-        </div>
-
-        {/* ----------------- STATS SECTION ----------------- */}
+      {/* ---------- Stats Cards ---------- */}
+      <div className="flex flex-col md:flex-row gap-6 mt-8 w-full max-w-3xl justify-center">
         <motion.div
+          className="bg-white/10 p-6 rounded-2xl shadow-lg flex-1 text-center border border-white/20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
         >
-          <div className="p-5 rounded-xl bg-white/10 border border-white/20">
-            <p className="text-lg">Upcoming</p>
-            <p className="text-3xl font-bold">{upcoming.length}</p>
-          </div>
-
-          <div className="p-5 rounded-xl bg-white/10 border border-white/20">
-            <p className="text-lg">Past</p>
-            <p className="text-3xl font-bold">{past.length}</p>
-          </div>
-
-          <div className="p-5 rounded-xl bg-white/10 border border-white/20">
-            <p className="text-lg">Total</p>
-            <p className="text-3xl font-bold">{appointments.length}</p>
-          </div>
-
-          <div className="p-5 rounded-xl bg-white/10 border border-white/20">
-            <p className="text-lg">Active</p>
-            <p className="text-3xl font-bold">{upcoming.length}</p>
-          </div>
+          <h3 className="text-xl font-semibold mb-2">Upcoming Appointments</h3>
+          <p className="text-4xl font-bold">{upcomingAppointments.length}</p>
         </motion.div>
 
-        {/* ----------------- APPOINTMENT LISTS ----------------- */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <motion.div
+          className="bg-white/10 p-6 rounded-2xl shadow-lg flex-1 text-center border border-white/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h3 className="text-xl font-semibold mb-2">Past Appointments</h3>
+          <p className="text-4xl font-bold">{pastAppointments.length}</p>
+        </motion.div>
+      </div>
 
-          {/* Upcoming Appointments */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-6 bg-white/10 rounded-2xl border border-white/20 shadow-lg"
-          >
-            <h3 className="text-xl font-semibold mb-4">Upcoming Appointments</h3>
+      {/* ---------- Appointments List ---------- */}
+      <div className="w-full max-w-3xl mt-8 space-y-6">
+        <motion.div
+          className="bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h3 className="text-2xl font-semibold mb-4 text-center">Upcoming Appointments</h3>
+          {loading ? (
+            <p className="text-center">Loading...</p>
+          ) : upcomingAppointments.length ? (
+            <ul className="space-y-3">
+              {upcomingAppointments.map((appt) => (
+                <li
+                  key={appt.id}
+                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
+                >
+                  <span>{formatDate(appt.date_time)} - {appt.doctor} ({appt.status})</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-center text-gray-300">No upcoming appointments.</p>
+          )}
+        </motion.div>
 
-            {loading ? (
-              <p>Loading...</p>
-            ) : upcoming.length ? (
-              <ul className="space-y-3">
-                {upcoming.map((appt) => (
-                  <li
-                    key={appt.id}
-                    className="p-4 rounded-xl bg-white/20 flex flex-col md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold">{appt.doctor}</p>
-                      <p className="text-gray-300 text-sm">{formatDate(appt.date_time)}</p>
-                    </div>
-                    <button
-                      onClick={() => cancelAppointment(appt.id)}
-                      className="mt-3 md:mt-0 px-4 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      Cancel
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-300">No upcoming appointments.</p>
-            )}
-          </motion.div>
-
-          {/* Past Appointments */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-6 bg-white/10 rounded-2xl border border-white/20 shadow-lg"
-          >
-            <h3 className="text-xl font-semibold mb-4">Past Appointments</h3>
-
-            {loading ? (
-              <p>Loading...</p>
-            ) : past.length ? (
-              <ul className="space-y-3">
-                {past.map((appt) => (
-                  <li
-                    key={appt.id}
-                    className="p-4 rounded-xl bg-white/20 flex flex-col md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold">{appt.doctor}</p>
-                      <p className="text-gray-300 text-sm">{formatDate(appt.date_time)}</p>
-                    </div>
-                    <span className="px-3 py-1 rounded-full bg-green-600 text-sm">
-                      Completed
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-300">No past appointments.</p>
-            )}
-          </motion.div>
-        </div>
-      </main>
+        <motion.div
+          className="bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h3 className="text-2xl font-semibold mb-4 text-center">Past Appointments</h3>
+          {loading ? (
+            <p className="text-center">Loading...</p>
+          ) : pastAppointments.length ? (
+            <ul className="space-y-3">
+              {pastAppointments.map((appt) => (
+                <li
+                  key={appt.id}
+                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
+                >
+                  <span>{formatDate(appt.date_time)} - {appt.doctor} ({appt.status})</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-center text-gray-300">No past appointments.</p>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 };
