@@ -10,6 +10,7 @@ const DashboardPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  /* ---------------- LOAD USER & APPOINTMENTS ---------------- */
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const access = localStorage.getItem("access");
@@ -21,10 +22,7 @@ const DashboardPage = () => {
         ...userData,
         token: access,
         full_name:
-          `${userData.first_name || ""} ${userData.last_name || ""}`.trim() ||
-          userData.name ||
-          userData.full_name ||
-          "",
+          `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
       };
       setUser(finalUser);
       fetchAppointments(access, userData.id);
@@ -58,59 +56,84 @@ const DashboardPage = () => {
     }
   };
 
+  /* ---------------- CANCEL APPOINTMENT ---------------- */
   const cancelAppointment = (id) => {
+    // Temp cancel in UI
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: "cancelled-temp" } : a))
     );
 
-    const toastId = toast(
-      ({ close }) => (
-        <div className="flex items-center gap-2">
-          <span>Appointment removed.</span>
+    const toastId = toast.custom(
+      (t) => (
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className={`${
+            t.visible ? "opacity-100" : "opacity-0"
+          } bg-white/20 backdrop-blur-xl text-white px-5 py-4 rounded-xl shadow-xl border border-white/20 flex items-center gap-3`}
+        >
+          <p className="font-medium">Appointment removed</p>
+
           <button
             onClick={() => undoCancel(id, toastId)}
-            className="underline font-semibold"
+            className="px-3 py-1 bg-blue-500/80 hover:bg-blue-600 rounded-lg text-sm"
           >
             Undo
           </button>
-        </div>
+
+          <button
+            onClick={() => toast.dismiss(toastId)}
+            className="text-red-300 hover:text-red-400 font-bold ml-2"
+          >
+            ✕
+          </button>
+        </motion.div>
       ),
-      { position: "top-center", duration: 5000 }
+      { position: "bottom-center", duration: 5000 }
     );
 
+    // Auto-delete after 5s if not undone
     setTimeout(async () => {
       const stillCancelled =
         appointments.find((a) => a.id === id)?.status === "cancelled-temp";
+
       if (stillCancelled) {
         try {
           await apiFetch(`/appointments/${id}/`, "DELETE", null, user.token);
           setAppointments((prev) => prev.filter((a) => a.id !== id));
-          toast.dismiss(toastId);
-          toast.success("Appointment cancelled successfully!", {
-            duration: 3000,
+
+          toast.success("✔ Appointment cancelled!", {
+            position: "bottom-center",
           });
         } catch (err) {
-          toast.error("Failed to cancel appointment.", { duration: 3000 });
+          toast.error("Cancellation failed!", { position: "bottom-center" });
         }
       }
     }, 5000);
   };
 
+  /* ---------------- UNDO CANCEL ---------------- */
   const undoCancel = (id, toastId) => {
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: "pending" } : a))
     );
     toast.dismiss(toastId);
-    toast.success("Appointment restored!", { duration: 3000 });
+
+    toast.success("✨ Appointment restored!", {
+      position: "bottom-center",
+    });
   };
 
+  /* ---------------- PAID ---------------- */
   const markPaid = (id) => {
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: "paid" } : a))
     );
-    toast.success("Appointment marked as Paid!", { duration: 3000 });
+    toast.success("💳 Marked as Paid!", { position: "bottom-center" });
   };
 
+  /* ---------------- DATE FORMAT ---------------- */
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return d.toLocaleString("en-IN", {
@@ -123,26 +146,30 @@ const DashboardPage = () => {
     });
   };
 
-  if (!user) return <p className="text-center mt-10 text-white">Loading...</p>;
+  /* ---------------- LOADING ---------------- */
+  if (!user)
+    return <p className="text-center mt-10 text-white">Loading...</p>;
 
   const upcomingAppointments = appointments.filter(
     (appt) =>
       new Date(appt.date_time) >= new Date() && appt.status !== "cancelled-temp"
   );
+
   const pastAppointments = appointments.filter(
     (appt) =>
       new Date(appt.date_time) < new Date() && appt.status !== "cancelled-temp"
   );
 
+  /* ---------------- UI STARTS ---------------- */
   return (
     <div className="min-h-screen px-4 md:px-12 pt-24 pb-12 text-white bg-transparent">
-      
+      <Toaster />
 
       <div className="flex flex-col md:flex-row gap-10">
-        {/* ---------------- LEFT: PROFILE CARD ---------------- */}
+        {/* ---------------- LEFT PROFILE CARD ---------------- */}
         <motion.div
           className="md:w-1/4 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-8 shadow-xl"
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -25 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
@@ -155,105 +182,57 @@ const DashboardPage = () => {
             <p>
               <span className="font-semibold">Joined:</span>{" "}
               {user.date_joined
-                ? new Date(user.date_joined).toLocaleDateString()
+                ? new Date(user.date_joined).toLocaleString("en-IN", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
                 : "N/A"}
             </p>
             <p>
-              <span className="font-semibold">Appointments:</span>{" "}
+              <span className="font-semibold">Total Appointments:</span>{" "}
               {appointments.length}
+            </p>
+            <p>
+              <span className="font-semibold">Account Status:</span>{" "}
+              <span className="text-green-400">Active ✔</span>
             </p>
           </div>
         </motion.div>
 
-        {/* ---------------- RIGHT: DASHBOARD CONTENT ---------------- */}
+        {/* ---------------- RIGHT CONTENT ---------------- */}
         <div className="flex-1 flex flex-col gap-8">
-          {/* --------- DASHBOARD CARDS (3-CARD GRID) --------- */}
+          {/* top cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Upcoming */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center hover:scale-105 transition-all"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <p className="text-gray-300">Upcoming</p>
-              <p className="text-3xl font-bold">
-                {upcomingAppointments.length}
-              </p>
-            </motion.div>
-
-            {/* Past */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center hover:scale-105 transition-all"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <p className="text-gray-300">Past</p>
-              <p className="text-3xl font-bold">{pastAppointments.length}</p>
-            </motion.div>
-
-            {/* New Card – Activity */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center hover:scale-105 transition-all"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <p className="text-gray-300">Recent Activity</p>
-              <p className="text-3xl font-bold">
-                {Math.floor(Math.random() * 20) + 5}
-              </p>
-            </motion.div>
+            <Card title="Upcoming" value={upcomingAppointments.length} />
+            <Card title="Past" value={pastAppointments.length} delay={0.1} />
+            <Card
+              title="Recent Activity"
+              value={Math.floor(Math.random() * 20) + 5}
+              delay={0.2}
+            />
           </div>
 
-          {/* -------- SMALLER ADDITIONAL CARDS BELOW -------- */}
+          {/* bottom small cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Quick Actions */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
-              <div className="flex gap-3">
-                <button className="px-3 py-1 bg-blue-500/80 hover:bg-blue-600 rounded-xl font-semibold">
-                  Book
-                </button>
-                <button className="px-3 py-1 bg-green-500/80 hover:bg-green-600 rounded-xl font-semibold">
-                  Report
-                </button>
-                <button className="px-3 py-1 bg-purple-500/80 hover:bg-purple-600 rounded-xl font-semibold">
-                  History
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Health Tips */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <h3 className="text-lg font-semibold mb-3">Health Tip</h3>
-              <p className="text-gray-300">
-                Drink at least 2–3 liters of water daily to stay hydrated.
-              </p>
-            </motion.div>
+            <SmallCard />
+            <TipsCard />
           </div>
 
-          {/* ----------- APPOINTMENTS LIST ----------- */}
+          {/* appointments list */}
           <div className="grid grid-cols-1 gap-6">
             {appointments.map((appt) => (
               <motion.div
                 key={appt.id}
                 className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-5 flex justify-between items-center hover:scale-[1.02] transition-all"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 25 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div>
                   <h4 className="text-lg font-semibold">{appt.doctor}</h4>
-                  <p className="text-gray-300">{formatDate(appt.date_time)}</p>
+                  <p className="text-gray-300">
+                    {formatDate(appt.date_time)}
+                  </p>
                 </div>
 
                 <div className="flex gap-2">
@@ -278,9 +257,56 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
-      <Toaster />
     </div>
   );
 };
+
+/* ---------------- REUSABLE CARDS ---------------- */
+const Card = ({ title, value, delay = 0 }) => (
+  <motion.div
+    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center hover:scale-105 transition-all"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay }}
+  >
+    <p className="text-gray-300">{title}</p>
+    <p className="text-3xl font-bold">{value}</p>
+  </motion.div>
+);
+
+const SmallCard = () => (
+  <motion.div
+    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
+    initial={{ opacity: 0, y: 25 }}
+    animate={{ opacity: 1, y: 0 }}
+  >
+    <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
+    <div className="flex gap-3">
+      <button className="px-3 py-1 bg-blue-500/80 hover:bg-blue-600 rounded-xl font-semibold">
+        Book
+      </button>
+      <button className="px-3 py-1 bg-green-500/80 hover:bg-green-600 rounded-xl font-semibold">
+        Report
+      </button>
+      <button className="px-3 py-1 bg-purple-500/80 hover:bg-purple-600 rounded-xl font-semibold">
+        History
+      </button>
+    </div>
+  </motion.div>
+);
+
+const TipsCard = () => (
+  <motion.div
+    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
+    initial={{ opacity: 0, y: 25 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.1 }}
+  >
+    <h3 className="text-lg font-semibold mb-3">Health Tip</h3>
+    <p className="text-gray-300">
+      Drink at least 2–3 liters of water daily to stay hydrated.
+    </p>
+  </motion.div>
+);
 
 export default DashboardPage;
