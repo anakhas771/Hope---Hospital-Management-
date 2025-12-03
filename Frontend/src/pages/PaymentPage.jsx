@@ -26,6 +26,17 @@ const PaymentPage = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [user, setUser] = useState(null);
 
+  function convertTo24Hour(timeStr) {
+  const [time, modifier] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":");
+
+  if (modifier === "PM" && hours !== "12") hours = String(Number(hours) + 12);
+  if (modifier === "AM" && hours === "12") hours = "00";
+
+  return `${hours}:${minutes}`;
+}
+
+
   // ✅ Check login state
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -52,27 +63,16 @@ const PaymentPage = () => {
   // ✅ Format time + date
   const formattedTime = time || "-";
   // Convert and validate date + time from AppointmentPage
-  let isoDateTime = null;
+  
+let isoDateTime = null;
+if (date && time) {
+  const time24 = convertTo24Hour(time); // <-- FIX
+  const d = new Date(`${date}T${time24}:00`);
 
-  if (date && time) {
-    let cleanedTime = time;
-
-    // Convert "10:00 AM" -> "10:00"
-    if (
-      time.toLowerCase().includes("am") ||
-      time.toLowerCase().includes("pm")
-    ) {
-      const temp = new Date(`1970-01-01 ${time}`);
-      cleanedTime = temp.toTimeString().slice(0, 5); // HH:MM 24hr
-    }
-
-    const finalDate = `${date}T${cleanedTime}:00`; // YYYY-MM-DDTHH:mm:00
-    const d = new Date(finalDate);
-
-    if (!isNaN(d.getTime())) {
-      isoDateTime = d.toISOString();
-    }
+  if (!isNaN(d.getTime())) {
+    isoDateTime = d.toISOString();
   }
+}
 
   // ✅ Payment success handler
   const handlePaymentSuccess = async (details) => {
