@@ -1,61 +1,47 @@
-// lib/api.js
+// src/lib/api.js
+import { getValidToken } from "../utils/getToken";
 
-// -------------------------------------------
-// BASE API URL
-// -------------------------------------------
-export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+export const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
+const BASE_URL = `${API_URL}/accounts`;
 
-// ---------------------------------------------------
-// NORMAL USER API FETCH (for frontend)
-// Everything goes through /accounts/ correctly
-// ---------------------------------------------------
-const BASE_URL = "https://hope-backend-mvos.onrender.com/accounts";
+// Generic fetch used across frontend. Attaches valid token (refreshes if necessary).
+export async function apiFetch(endpoint, method = "GET", body = null) {
+  const token = await getValidToken();
 
-export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
-  const headers = {
-    "Content-Type": "application/json",
-  };
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const options = {
-    method,
-    headers,
-  };
-
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
 
   const res = await fetch(`${BASE_URL}${endpoint}`, options);
 
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(errText);
+    // Try to parse JSON error
+    let errText;
+    try {
+      const json = await res.json();
+      errText = json.detail || json.error || JSON.stringify(json);
+    } catch {
+      errText = await res.text();
+    }
+    throw new Error(errText || `API error ${res.status}`);
   }
 
-  return res.json();
+  // Might be empty body
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
-
-// ---------------------------------------------------
-// ADMIN API FETCH (JWT secured)
-// Used for dashboard login + CRUD
-// ---------------------------------------------------
+// Admin helpers (if you keep admin tokens separate)
 export async function adminFetch(endpoint, method = "GET", body = null) {
   const token = localStorage.getItem("admin_access_token");
-
   if (!token) {
-    // If missing → redirect admin
     window.location.href = "/admin-login";
     return;
   }
 
-  const url = `${API_URL}/accounts${endpoint}`;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/accounts${endpoint}`, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -65,51 +51,13 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   });
 
   if (!res.ok) {
-    // auto logout on token expiry
     if (res.status === 401) {
       localStorage.removeItem("admin_access_token");
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
-
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || `API error ${res.status}`);
-  }
-
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-}
-
-// ---------------------------------------------------
-// ADMIN FORM DATA FETCH (Uploads)
-// ---------------------------------------------------
-export async function adminFetchForm(endpoint, method = "POST", formData) {
-  const token = localStorage.getItem("admin_access_token");
-
-  if (!token) {
-    window.location.href = "/admin-login";
-    return;
-  }
-
-  const url = `${API_URL}/accounts${endpoint}`;
-
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`, // NO content-type for FormData
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem("admin_access_token");
-      localStorage.removeItem("admin_refresh_token");
-      window.location.href = "/admin-login";
-    }
-
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || "Form upload error");
+    throw new Error(err.detail || err.error || `Admin API error ${res.status}`);
   }
 
   const text = await res.text();

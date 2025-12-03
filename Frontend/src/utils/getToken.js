@@ -1,13 +1,15 @@
 // src/utils/getToken.js
-
-import { API_URL } from "../lib/api";
+const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
 
 // -----------------------------
 // Helper: Decode JWT payload
 // -----------------------------
 function parseJwt(token) {
+  if (!token || typeof token !== "string") return null;
   try {
-    return JSON.parse(atob(token.split(".")[1]));
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    return JSON.parse(atob(payload));
   } catch (err) {
     console.error("Invalid JWT:", err);
     return null;
@@ -18,22 +20,23 @@ function parseJwt(token) {
 // Main: Get a valid access token
 // -----------------------------
 export async function getValidToken() {
-  let token = localStorage.getItem("access");
+  const access = localStorage.getItem("access");
   const refresh = localStorage.getItem("refresh");
 
-  // Not logged in
-  if (!token && !refresh) return null;
+  // nothing stored
+  if (!access && !refresh) return null;
 
-  // Check token expiration
-  const payload = parseJwt(token);
+  // if no access but refresh exists -> refresh
+  if (!access && refresh) return await refreshToken(refresh);
+
+  const payload = parseJwt(access);
   const isExpired = !payload || payload.exp * 1000 < Date.now();
 
   if (isExpired && refresh) {
-    // Try refreshing the token
     return await refreshToken(refresh);
   }
 
-  return token;
+  return access;
 }
 
 // -----------------------------
@@ -49,14 +52,20 @@ async function refreshToken(refresh) {
 
     if (!res.ok) {
       console.error("❌ Refresh token invalid, logging out");
-      localStorage.clear();
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+      localStorage.removeItem("user");
       return null;
     }
 
     const data = await res.json();
-    localStorage.setItem("access", data.access);
-    console.log("🔄 Access token refreshed");
-    return data.access;
+    if (data.access) {
+      localStorage.setItem("access", data.access);
+      console.log("🔄 Access token refreshed");
+      return data.access;
+    }
+
+    return null;
   } catch (err) {
     console.error("Refresh failed:", err);
     return null;
