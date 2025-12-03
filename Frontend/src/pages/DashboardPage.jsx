@@ -10,7 +10,6 @@ const DashboardPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // -------------------- Load User --------------------
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const access = localStorage.getItem("access");
@@ -19,7 +18,6 @@ const DashboardPage = () => {
 
     try {
       const userData = JSON.parse(storedUser);
-
       const finalUser = {
         ...userData,
         token: access,
@@ -29,7 +27,6 @@ const DashboardPage = () => {
           userData.full_name ||
           "",
       };
-
       setUser(finalUser);
       fetchAppointments(access, userData.id);
     } catch (err) {
@@ -37,7 +34,6 @@ const DashboardPage = () => {
     }
   }, []);
 
-  // -------------------- Fetch Appointments --------------------
   const fetchAppointments = async (token, userId) => {
     try {
       setLoading(true);
@@ -69,102 +65,76 @@ const DashboardPage = () => {
     });
   };
 
-  const upcomingAppointments = appointments.filter(
-    (appt) => new Date(appt.date_time) >= new Date()
-  );
-
-  const pastAppointments = appointments.filter(
-    (appt) => new Date(appt.date_time) < new Date()
-  );
-
   if (!user) return <p className="text-center mt-10 text-white">Loading...</p>;
 
+  const upcomingAppointments = appointments.filter(appt => new Date(appt.date_time) >= new Date());
+  const pastAppointments = appointments.filter(appt => new Date(appt.date_time) < new Date());
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 text-white">
+    <div className="min-h-screen px-4 md:px-12 py-12 text-white bg-transparent">
       <Toaster position="bottom-center" />
 
-      {/* ---------- Profile Card ---------- */}
-      <motion.div
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-lg text-center w-full max-w-md border border-white/20"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h2 className="text-3xl font-bold mb-4">{user.full_name}</h2>
-        <p className="text-gray-300 mb-2">{user.email}</p>
-        <p className="text-gray-300">
-          Member Since: {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
-        </p>
-      </motion.div>
+      <div className="flex flex-col md:flex-row gap-8">
 
-      {/* ---------- Stats Cards ---------- */}
-      <div className="flex flex-col md:flex-row gap-6 mt-8 w-full max-w-3xl justify-center">
+        {/* --------- Left Panel: Profile & Stats --------- */}
         <motion.div
-          className="bg-white/10 p-6 rounded-2xl shadow-lg flex-1 text-center border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-lg w-full md:w-1/3 border border-white/20 flex flex-col gap-6"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
         >
-          <h3 className="text-xl font-semibold mb-2">Upcoming Appointments</h3>
-          <p className="text-4xl font-bold">{upcomingAppointments.length}</p>
+          <h2 className="text-2xl font-bold">{user.full_name}</h2>
+          <p className="text-gray-300">{user.email}</p>
+          <p className="text-gray-300">
+            Member Since: {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
+          </p>
+
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="bg-white/20 p-4 rounded-xl shadow flex justify-between items-center">
+              <span className="text-gray-200 font-medium">Upcoming</span>
+              <span className="text-xl font-bold">{upcomingAppointments.length}</span>
+            </div>
+            <div className="bg-white/20 p-4 rounded-xl shadow flex justify-between items-center">
+              <span className="text-gray-200 font-medium">Past</span>
+              <span className="text-xl font-bold">{pastAppointments.length}</span>
+            </div>
+          </div>
         </motion.div>
 
+        {/* --------- Right Panel: Appointments --------- */}
         <motion.div
-          className="bg-white/10 p-6 rounded-2xl shadow-lg flex-1 text-center border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="flex-1 flex flex-col gap-6"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
         >
-          <h3 className="text-xl font-semibold mb-2">Past Appointments</h3>
-          <p className="text-4xl font-bold">{pastAppointments.length}</p>
-        </motion.div>
-      </div>
+          {/* Upcoming Appointments */}
+          <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/20 flex flex-col gap-3">
+            <h3 className="text-xl font-semibold text-center">Upcoming Appointments</h3>
+            {loading ? <p className="text-center">Loading...</p> : upcomingAppointments.length ? (
+              <ul className="space-y-2">
+                {upcomingAppointments.map(appt => (
+                  <li key={appt.id} className="bg-white/20 p-3 rounded-xl flex justify-between items-center text-gray-100 hover:bg-white/30 transition">
+                    <span>{formatDate(appt.date_time)} - {appt.doctor}</span>
+                    <span className="text-sm text-gray-300">{appt.status}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-center text-gray-400">No upcoming appointments.</p>}
+          </div>
 
-      {/* ---------- Appointments List ---------- */}
-      <div className="w-full max-w-3xl mt-8 space-y-6">
-        <motion.div
-          className="bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h3 className="text-2xl font-semibold mb-4 text-center">Upcoming Appointments</h3>
-          {loading ? (
-            <p className="text-center">Loading...</p>
-          ) : upcomingAppointments.length ? (
-            <ul className="space-y-3">
-              {upcomingAppointments.map((appt) => (
-                <li
-                  key={appt.id}
-                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
-                >
-                  <span>{formatDate(appt.date_time)} - {appt.doctor} ({appt.status})</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-gray-300">No upcoming appointments.</p>
-          )}
-        </motion.div>
-
-        <motion.div
-          className="bg-white/10 p-6 rounded-2xl shadow-lg border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h3 className="text-2xl font-semibold mb-4 text-center">Past Appointments</h3>
-          {loading ? (
-            <p className="text-center">Loading...</p>
-          ) : pastAppointments.length ? (
-            <ul className="space-y-3">
-              {pastAppointments.map((appt) => (
-                <li
-                  key={appt.id}
-                  className="p-3 rounded-lg bg-white/20 flex justify-between items-center"
-                >
-                  <span>{formatDate(appt.date_time)} - {appt.doctor} ({appt.status})</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-gray-300">No past appointments.</p>
-          )}
+          {/* Past Appointments */}
+          <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/20 flex flex-col gap-3">
+            <h3 className="text-xl font-semibold text-center">Past Appointments</h3>
+            {loading ? <p className="text-center">Loading...</p> : pastAppointments.length ? (
+              <ul className="space-y-2">
+                {pastAppointments.map(appt => (
+                  <li key={appt.id} className="bg-white/20 p-3 rounded-xl flex justify-between items-center text-gray-100 hover:bg-white/30 transition">
+                    <span>{formatDate(appt.date_time)} - {appt.doctor}</span>
+                    <span className="text-sm text-gray-300">{appt.status}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-center text-gray-400">No past appointments.</p>}
+          </div>
         </motion.div>
       </div>
     </div>
