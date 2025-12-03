@@ -51,10 +51,27 @@ const PaymentPage = () => {
 
   // ✅ Format time + date
   const formattedTime = time || "-";
+  // Convert and validate date + time from AppointmentPage
   let isoDateTime = null;
+
   if (date && time) {
-    const d = new Date(`${date}T${time}:00`);
-    if (!isNaN(d.getTime())) isoDateTime = d.toISOString();
+    let cleanedTime = time;
+
+    // Convert "10:00 AM" -> "10:00"
+    if (
+      time.toLowerCase().includes("am") ||
+      time.toLowerCase().includes("pm")
+    ) {
+      const temp = new Date(`1970-01-01 ${time}`);
+      cleanedTime = temp.toTimeString().slice(0, 5); // HH:MM 24hr
+    }
+
+    const finalDate = `${date}T${cleanedTime}:00`; // YYYY-MM-DDTHH:mm:00
+    const d = new Date(finalDate);
+
+    if (!isNaN(d.getTime())) {
+      isoDateTime = d.toISOString();
+    }
   }
 
   // ✅ Payment success handler
