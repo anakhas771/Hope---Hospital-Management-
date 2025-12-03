@@ -85,7 +85,7 @@ const PaymentPage = () => {
 
       setShowConfetti(true);
       toast.success(
-        `🎉 Payment successful! Appointment booked with Dr. ${doctorName}.`
+        `🎉 Payment successful! Appointment booked with ${doctorName}.`
       );
 
       setTimeout(() => {
