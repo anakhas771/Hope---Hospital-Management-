@@ -35,6 +35,8 @@ const DoctorCard = ({ doctor }) => {
   };
 
   const profileImageUrl = getImageUrl(profile_image);
+console.log("profile_image from backend:", profile_image);
+console.log("resolved profileImageUrl:", profileImageUrl);
 
   // Booking button
   const handleBook = () => {
