@@ -1,36 +1,23 @@
 // src/services/appointments.js
-import { API_URL } from "../lib/api";
+import { apiFetch } from "../lib/api";
+import { getValidToken } from "../utils/getToken";
 
-export async function verifyPayment(paymentId, doctorId, datetime, notes = "") {
-  const stored = localStorage.getItem("user");
-
-  if (!stored) throw new Error("User not logged in");
-
-  const user = JSON.parse(stored);
-  const token = user.token;
-
-  if (!token) throw new Error("User not authenticated");
-
-  const res = await fetch(`${API_URL}/accounts/appointments/verify_payment/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // ← FIXED
-    },
-    body: JSON.stringify({
-      payment_id: paymentId,
-      doctor: doctorId,
-      appointment_datetime: datetime,
-      notes: notes || "",
-    }),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    console.error("verifyPayment error:", data);
-    throw new Error(data.detail || "Error verifying payment");
+export async function verifyPayment(paymentId, doctorId, dateTime, notes = "") {
+  // ensure user logged in and token valid
+  const token = await getValidToken();
+  if (!token) {
+    throw new Error("User not authenticated. Please login again.");
   }
 
-  return data;
+  // apiFetch will attach token if omitted, but we can pass token explicitly
+  const payload = {
+    payment_id: paymentId,
+    doctor_id: doctorId,
+    date_time: dateTime, // ISO string expected by backend
+    notes,
+  };
+
+  // Using apiFetch (which will attempt refresh via getValidToken internally)
+  const res = await apiFetch("/appointments/verify_payment/", "POST", payload, token);
+  return res;
 }

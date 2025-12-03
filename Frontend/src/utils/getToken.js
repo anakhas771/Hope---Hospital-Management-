@@ -1,32 +1,43 @@
 // src/utils/getToken.js
 const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
 
-// -----------------------------
-// Helper: Decode JWT payload
-// -----------------------------
+// safe base64 decode for JWT payload (handles URL-safe base64)
+function b64DecodeUnicode(str) {
+  try {
+    // replace url-safe chars
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+    // pad with '='
+    while (str.length % 4) str += "=";
+    return decodeURIComponent(
+      atob(str)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+  } catch {
+    return null;
+  }
+}
+
 function parseJwt(token) {
   if (!token || typeof token !== "string") return null;
   try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    return JSON.parse(atob(payload));
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const payload = b64DecodeUnicode(parts[1]);
+    return payload ? JSON.parse(payload) : null;
   } catch (err) {
     console.error("Invalid JWT:", err);
     return null;
   }
 }
 
-// -----------------------------
-// Main: Get a valid access token
-// -----------------------------
 export async function getValidToken() {
-  const access = localStorage.getItem("access");
-  const refresh = localStorage.getItem("refresh");
+  // read both possible storage keys
+  const access = localStorage.getItem("access") || localStorage.getItem("access_token");
+  const refresh = localStorage.getItem("refresh") || localStorage.getItem("refresh_token");
 
-  // nothing stored
   if (!access && !refresh) return null;
-
-  // if no access but refresh exists -> refresh
   if (!access && refresh) return await refreshToken(refresh);
 
   const payload = parseJwt(access);
@@ -39,9 +50,6 @@ export async function getValidToken() {
   return access;
 }
 
-// -----------------------------
-// Refresh access token using refresh token
-// -----------------------------
 async function refreshToken(refresh) {
   try {
     const res = await fetch(`${API_URL}/auth/token/refresh/`, {
@@ -51,7 +59,7 @@ async function refreshToken(refresh) {
     });
 
     if (!res.ok) {
-      console.error("❌ Refresh token invalid, logging out");
+      console.error("Refresh token invalid, clearing localStorage.");
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("user");
@@ -59,12 +67,12 @@ async function refreshToken(refresh) {
     }
 
     const data = await res.json();
-    if (data.access) {
-      localStorage.setItem("access", data.access);
+    const newAccess = data.access || data.access_token;
+    if (newAccess) {
+      localStorage.setItem("access", newAccess);
       console.log("🔄 Access token refreshed");
-      return data.access;
+      return newAccess;
     }
-
     return null;
   } catch (err) {
     console.error("Refresh failed:", err);

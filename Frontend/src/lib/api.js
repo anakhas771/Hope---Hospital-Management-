@@ -1,50 +1,68 @@
-// lib/api.js
+// src/lib/api.js
+import { getValidToken } from "../utils/getToken";
 
-// -------------------------------------------
-// BASE API URL (from Vite env)
-// -------------------------------------------
-export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+export const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
 
-// -------------------------------------------
-// NORMAL USER API FETCH (Public/Frontend)
-// Base URL ALWAYS points to /accounts
-// -------------------------------------------
-const BASE_URL = `${API_URL}/accounts`;
-
-export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
-  const headers = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+// Parse response safely
+async function safeJson(res) {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return text;
   }
-
-  const options = { method, headers };
-  if (body) options.body = JSON.stringify(body);
-
-  const res = await fetch(`${BASE_URL}${endpoint}`, options);
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(errText);
-  }
-  return res.json();
 }
 
-// -------------------------------------------
-// ADMIN API FETCH (requires admin JWT)
-// Used for Admin Dashboard CRUD
-// -------------------------------------------
-export async function adminFetch(endpoint, method = "GET", body = null) {
-  const token = localStorage.getItem("admin_access_token");
+// ------------------------------
+// USER FETCH (Auto token refresh)
+// ------------------------------
+export async function apiFetch(endpoint, method = "GET", body = null, rawToken = null) {
+  if (!endpoint.startsWith("/")) {
+    endpoint = "/" + endpoint;
+  }
 
+  const url = `${API_URL}/accounts${endpoint}`;
+
+  // If caller passed token, use it. Else fetch valid token.
+  const token = rawToken || (await getValidToken());
+
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : null,
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+      window.location.href = "/login";
+    }
+    const err = await safeJson(res).catch(() => ({}));
+    throw new Error(err.detail || err.error || `API Error: ${res.status}`);
+  }
+
+  return safeJson(res);
+}
+
+// ------------------------------
+// ADMIN JSON API (token required)
+// ------------------------------
+export async function adminFetch(endpoint, method = "GET", body = null) {
+  if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
+
+  const token = localStorage.getItem("admin_access_token");
   if (!token) {
     window.location.href = "/admin-login";
     return;
   }
 
-  const url = `${API_URL}/accounts${endpoint}`;
+  const url = `${API_URL}${endpoint}`;
 
   const res = await fetch(url, {
     method,
@@ -56,40 +74,36 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   });
 
   if (!res.ok) {
-    // Force logout if token expired
     if (res.status === 401) {
       localStorage.removeItem("admin_access_token");
       localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
-
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || `API error ${res.status}`);
+    const err = await safeJson(res).catch(() => ({}));
+    throw new Error(err.detail || err.error || `Admin API error ${res.status}`);
   }
 
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return safeJson(res);
 }
 
-// -------------------------------------------
-// ADMIN FORM UPLOAD (for images, files)
-// MUST export correctly so Vite doesn't fail
-// -------------------------------------------
+// ------------------------------
+// ADMIN FORM API (file uploads)
+// ------------------------------
 export async function adminFetchForm(endpoint, method = "POST", formData) {
-  const token = localStorage.getItem("admin_access_token");
+  if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
+  const token = localStorage.getItem("admin_access_token");
   if (!token) {
     window.location.href = "/admin-login";
     return;
   }
 
-  const url = `${API_URL}/accounts${endpoint}`;
+  const url = `${API_URL}${endpoint}`;
 
   const res = await fetch(url, {
     method,
     headers: {
-      // IMPORTANT: DO NOT set content-type for FormData
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // DO NOT set content-type
     },
     body: formData,
   });
@@ -97,23 +111,11 @@ export async function adminFetchForm(endpoint, method = "POST", formData) {
   if (!res.ok) {
     if (res.status === 401) {
       localStorage.removeItem("admin_access_token");
-      localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
-
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || "Form upload error");
+    const err = await safeJson(res).catch(() => ({}));
+    throw new Error(err.detail || err.error || `Admin Upload Error`);
   }
 
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return safeJson(res);
 }
-
-// ---------------------------------------------------
-// 100% FIXED EXPORTS — Vite needs this!
-// ---------------------------------------------------
-export default {
-  apiFetch,
-  adminFetch,
-  adminFetchForm,
-};

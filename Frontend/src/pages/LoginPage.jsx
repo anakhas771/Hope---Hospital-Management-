@@ -15,7 +15,6 @@ const LoginPage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Show success message if redirected after email verification
     const query = new URLSearchParams(location.search);
     if (query.get("verified") === "true") {
       toast.success("✅ Email verified! You can now log in.");
@@ -38,8 +37,7 @@ const LoginPage = () => {
         body: JSON.stringify(formData),
       });
 
-      const text = await res.text(); // IMPORTANT: read raw text
-
+      const text = await res.text();
       let data = {};
       try {
         data = text ? JSON.parse(text) : {};
@@ -50,8 +48,20 @@ const LoginPage = () => {
       }
 
       if (res.ok) {
-        const userWithToken = { ...data.user, token: data.access };
-        localStorage.setItem("user", JSON.stringify(userWithToken));
+        const access = data.access || data.access_token;
+        const refresh = data.refresh || data.refresh_token;
+
+        localStorage.setItem("access", access);
+        localStorage.setItem("refresh", refresh);
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: data.user?.id,
+            email: data.user?.email,
+            name: data.user?.full_name,
+          })
+        );
 
         toast.success("Login successful!");
         navigate("/dashboard");
