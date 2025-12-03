@@ -9,30 +9,36 @@ export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 // NORMAL USER API FETCH (for frontend)
 // Everything goes through /accounts/ correctly
 // ---------------------------------------------------
-export async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem("access");
+const BASE_URL = "https://hope-backend-mvos.onrender.com/accounts";
 
+export async function apiFetch(endpoint, method = "GET", body = null, token = null) {
   const headers = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
   };
 
-  // FIXED: Correct URL format → API_URL + "/accounts" + endpoint
-  const url = `${API_URL}/accounts${endpoint}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
-  const res = await fetch(url, {
-    ...options,
+  const options = {
+    method,
     headers,
-  });
+  };
+
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, options);
 
   if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(errText || `API Error: ${res.status}`);
+    const errText = await res.text();
+    throw new Error(errText);
   }
 
   return res.json();
 }
+
 
 // ---------------------------------------------------
 // ADMIN API FETCH (JWT secured)
