@@ -1,5 +1,5 @@
 // ---------------------------------------
-// DashboardPage.jsx
+// DashboardPage.jsx (FULL FIXED VERSION)
 // ---------------------------------------
 import React, { useState, useEffect, useMemo } from "react";
 import { Toaster, toast } from "react-hot-toast";
@@ -17,16 +17,23 @@ export default function DashboardPage() {
         const userData = await apiFetch("/user/profile/");
         setUser(userData);
 
-        // Fetch appointments
+        // Fetch appointments 
         const apptData = await apiFetch("/appointments/");
-        const sortedAppts = apptData.sort(
+
+        const cleaned = Array.isArray(apptData) ? apptData : [];
+
+        const sorted = cleaned.sort(
           (a, b) => new Date(b.date_time) - new Date(a.date_time)
         );
 
-        setAppointments(sortedAppts);
+        setAppointments(sorted);
+
       } catch (e) {
         console.error("Dashboard load failed:", e);
         toast.error("Failed to load dashboard data");
+
+        // IMPORTANT FIX — avoid React crash
+        setAppointments([]);
       }
     };
 
@@ -35,6 +42,8 @@ export default function DashboardPage() {
 
   // ---------------- CANCEL APPOINTMENT + UNDO ----------------
   const cancelAppointment = async (id) => {
+    if (!Array.isArray(appointments)) return;
+
     const deleted = appointments.find((a) => a.id === id);
     const updated = appointments.filter((a) => a.id !== id);
 
@@ -70,22 +79,23 @@ export default function DashboardPage() {
       await apiFetch(`/appointments/${id}/cancel/`, "POST");
     } catch (e) {
       console.error("Cancel API failed:", e);
-      toast.error("Failed to cancel appointment on server");
+      toast.error("Failed to cancel appointment");
     }
   };
 
-  if (!user) return <div className="py-20 text-center text-lg">Loading…</div>;
+  if (!user)
+    return <div className="py-20 text-center text-lg">Loading…</div>;
 
   // ---------------- SUMMARY DATA ----------------
-  const completed = useMemo(
-    () => appointments.filter((a) => a.status === "Done").length,
-    [appointments]
-  );
+  const completed = useMemo(() => {
+    if (!Array.isArray(appointments)) return 0;
+    return appointments.filter((a) => a.status === "Done").length;
+  }, [appointments]);
 
-  const cancelled = useMemo(
-    () => appointments.filter((a) => a.status === "Cancelled").length,
-    [appointments]
-  );
+  const cancelled = useMemo(() => {
+    if (!Array.isArray(appointments)) return 0;
+    return appointments.filter((a) => a.status === "Cancelled").length;
+  }, [appointments]);
 
   return (
     <div className="min-h-screen bg-gray-100 px-8 py-10">
@@ -101,16 +111,26 @@ export default function DashboardPage() {
         <div className="w-3/4 space-y-10">
           {/* SUMMARY */}
           <div className="flex gap-6">
-            <SummaryCard title="All Bookings" value={appointments.length} percentage="100%" />
+            <SummaryCard
+              title="All Bookings"
+              value={Array.isArray(appointments) ? appointments.length : 0}
+              percentage="100%"
+            />
             <SummaryCard
               title="Completed"
               value={completed}
-              percentage={`${((completed / Math.max(appointments.length, 1)) * 100).toFixed(1)}%`}
+              percentage={`${(
+                (completed / Math.max((appointments || []).length, 1)) *
+                100
+              ).toFixed(1)}%`}
             />
             <SummaryCard
               title="Cancelled"
               value={cancelled}
-              percentage={`${((cancelled / Math.max(appointments.length, 1)) * 100).toFixed(1)}%`}
+              percentage={`${(
+                (cancelled / Math.max((appointments || []).length, 1)) *
+                100
+              ).toFixed(1)}%`}
               color="orange"
             />
           </div>
@@ -151,13 +171,17 @@ function ProfileCard({ user }) {
 
         <div className="mt-6 w-full space-y-3">
           <InfoCard label="Email" value={user.email} />
-          <InfoCard label="Joined" value={new Date(user.date_joined).toDateString()} />
+          <InfoCard
+            label="Joined"
+            value={new Date(user.date_joined).toDateString()}
+          />
         </div>
       </div>
     </div>
   );
 }
 
+/* Profile Info Card */
 function InfoCard({ label, value }) {
   return (
     <div className="bg-white/70 backdrop-blur p-3 rounded-xl">
@@ -187,16 +211,18 @@ function SummaryCard({ title, value, percentage, color = "blue" }) {
 
 /* -------------------------------- APPOINTMENTS LIST ------------------------------ */
 function AppointmentsList({ appointments, cancelAppointment }) {
+  const safeList = Array.isArray(appointments) ? appointments : [];
+
   return (
     <div className="bg-white/60 backdrop-blur-xl p-6 rounded-3xl shadow-lg">
       <h2 className="text-xl font-semibold mb-4">Appointments</h2>
 
-      {appointments.length === 0 && (
+      {safeList.length === 0 && (
         <p className="text-center text-gray-600 py-6">No appointments yet.</p>
       )}
 
       <div className="space-y-4">
-        {appointments.map((item) => (
+        {safeList.map((item) => (
           <div
             key={item.id}
             className="flex justify-between items-center bg-white/70 p-4 rounded-xl shadow hover:scale-[1.01] transition-all"
@@ -205,16 +231,20 @@ function AppointmentsList({ appointments, cancelAppointment }) {
               {new Date(item.date_time).toDateString()}
             </p>
 
-            {/* DOCTOR INFO */}
+            {/* Doctor Info */}
             <div className="w-1/3">
-              <p className="font-semibold">{item.doctor?.name || "Unknown Doctor"}</p>
+              <p className="font-semibold">
+                {item.doctor?.name || "Unknown Doctor"}
+              </p>
               <p className="text-xs text-gray-500">{item.notes || "No notes"}</p>
               {item.doctor?.specialization && (
-                <p className="text-xs text-gray-400">{item.doctor.specialization}</p>
+                <p className="text-xs text-gray-400">
+                  {item.doctor.specialization}
+                </p>
               )}
             </div>
 
-            {/* STATUS */}
+            {/* Status */}
             <span
               className={`px-3 py-1 rounded-full text-sm ${
                 item.status === "Done"
@@ -227,10 +257,10 @@ function AppointmentsList({ appointments, cancelAppointment }) {
               {item.status}
             </span>
 
-            {/* AMOUNT */}
+            {/* Amount */}
             <p className="font-semibold">₹{item.amount}</p>
 
-            {/* ACTION BUTTONS */}
+            {/* Action buttons */}
             <div className="flex gap-2">
               <button
                 onClick={() => cancelAppointment(item.id)}
