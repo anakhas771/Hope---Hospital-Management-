@@ -158,7 +158,7 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="min-h-screen px-4 md:px-12 pt-24 pb-12 text-white bg-transparent">
+    <div className="min-h-screen  px-4 md:px-12 pt-27 pb-12 text-white bg-transparent">
       <Toaster />
 
       <div className="flex flex-col md:flex-row gap-10">
