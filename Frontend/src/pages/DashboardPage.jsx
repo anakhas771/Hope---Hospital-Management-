@@ -1,22 +1,11 @@
 // src/pages/DashboardPage.jsx
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { apiFetch } from "../lib/api";
-import { ThemeContext } from "../context/ThemeContext";
 import { Link } from "react-router-dom";
 
-/**
- * Upgraded Dashboard:
- * - Tabs (Upcoming / Past) animated
- * - Profile card with dynamic name + joined date
- * - Upload profile image (saved in localStorage)
- * - Replaced Quick Actions with HealthStats
- * - Appointment details modal
- */
-
 const DashboardPage = () => {
-  const { theme, toggle } = useContext(ThemeContext);
   const [user, setUser] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +21,6 @@ const DashboardPage = () => {
 
     try {
       const userData = JSON.parse(storedUser);
-      // dynamic first_name/last_name/joined usage
       const finalUser = {
         ...userData,
         token: access,
@@ -221,13 +209,6 @@ const DashboardPage = () => {
             </div>
 
             <div className="pt-4 border-t border-white/10">
-              <button
-                onClick={() => toggle()}
-                className="w-full px-4 py-2 mt-3 bg-white/6 backdrop-blur rounded-xl font-semibold hover:bg-white/8"
-              >
-                Toggle {theme === "dark" ? "Light" : "Dark"} Mode
-              </button>
-
               <Link
                 to="/settings"
                 className="w-full block text-center mt-3 text-sm text-gray-300 hover:text-white"
@@ -272,7 +253,6 @@ const DashboardPage = () => {
                     <h4 className="text-lg font-semibold">{appt.doctor}</h4>
                     <p className="text-sm text-gray-300">{formatDate(appt.date_time)}</p>
                     <p className="text-xs text-gray-400 mt-1 line-clamp-2">{appt.notes || appt.location}</p>
-
                     <div className="mt-2">
                       <StatusBadge status={appt.status} />
                     </div>
