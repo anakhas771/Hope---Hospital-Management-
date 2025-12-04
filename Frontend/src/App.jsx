@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import SettingsPage from "./pages/SettingsPage";
 
 // Theme Context Provider
 import { ThemeProvider } from "./context/ThemeContext";
@@ -67,16 +68,21 @@ function AppContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-
           {/* Landing Page */}
           <Route
             path="/"
             element={
               <>
                 <Navbar />
-                <GlassSection><Hero /></GlassSection>
-                <GlassSection><Services /></GlassSection>
-                <GlassSection><Departments /></GlassSection>
+                <GlassSection>
+                  <Hero />
+                </GlassSection>
+                <GlassSection>
+                  <Services />
+                </GlassSection>
+                <GlassSection>
+                  <Departments />
+                </GlassSection>
                 <Footer />
               </>
             }
@@ -94,7 +100,9 @@ function AppContent() {
               path={path}
               element={
                 <div className="flex items-center justify-center min-h-screen px-6">
-                  <GlassSection><Component /></GlassSection>
+                  <GlassSection>
+                    <Component />
+                  </GlassSection>
                 </div>
               }
             />
@@ -115,7 +123,9 @@ function AppContent() {
               element={
                 <PageWrapper>
                   <Navbar />
-                  <GlassSection><Component /></GlassSection>
+                  <GlassSection>
+                    <Component />
+                  </GlassSection>
                   <Footer />
                 </PageWrapper>
               }
@@ -135,7 +145,19 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-
+          {/* User Settings */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <Navbar />
+                  <SettingsPage />
+                  <Footer />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
           {/* Appointments & Payment */}
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -172,7 +194,9 @@ function AppContent() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider> {/* 👈 FIXED: WRAPPING ENTIRE APP */}
+      <ThemeProvider>
+        {" "}
+        {/* 👈 FIXED: WRAPPING ENTIRE APP */}
         <Router>
           <PayPalScriptProvider
             options={{
