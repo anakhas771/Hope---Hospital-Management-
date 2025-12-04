@@ -1,10 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
-import { ThemeContext } from "../context/ThemeContext";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const SettingsPage = () => {
-  const { theme, toggle } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [user, setUser] = useState({
@@ -60,13 +58,13 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 md:px-24 pt-24 pb-12 text-white">
-      <div className="max-w-3xl mx-auto bg-white/6 backdrop-blur-2xl border border-white/8 rounded-3xl p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold">Settings</h2>
-        <p className="text-gray-300 mt-1">Update your profile and preferences</p>
+    <div className="min-h-screen px-4 md:px-24 pt-24 pb-12 text-white bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+      <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+        <h2 className="text-3xl font-bold text-center mb-1">Settings</h2>
+        <p className="text-gray-300 text-center mb-6">Update your profile and preferences</p>
 
         {/* Profile Image Upload */}
-        <div className="flex flex-col items-center mt-6">
+        <div className="flex flex-col items-center mb-8">
           <div className="relative">
             <img
               src={
@@ -74,113 +72,57 @@ const SettingsPage = () => {
                 "https://cdn-icons-png.flaticon.com/512/149/149071.png"
               }
               alt="Profile"
-              className="w-32 h-32 object-cover rounded-full border-4 border-white/20 shadow-lg"
+              className="w-36 h-36 object-cover rounded-full border-4 border-white/20 shadow-xl"
             />
-            <label className="absolute right-0 bottom-0 bg-blue-500 p-2 rounded-full cursor-pointer shadow-md">
+            <label className="absolute right-0 bottom-0 bg-blue-500 p-3 rounded-full cursor-pointer shadow-md hover:bg-blue-600 transition">
               <input
                 className="hidden"
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
               />
-              <span className="text-xs">📤</span>
+              <span className="text-lg">📤</span>
             </label>
           </div>
           <button
             onClick={clearProfileImage}
-            className="mt-3 px-4 py-2 rounded-xl bg-red-500 text-sm"
+            className="mt-4 px-5 py-2 rounded-xl bg-red-500 text-sm hover:bg-red-600 transition"
           >
             Clear Image
           </button>
         </div>
 
         {/* User Info Form */}
-        <div className="mt-6 grid grid-cols-1 gap-4">
-
-          {/* Name Fields */}
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">First Name</span>
-            <input
-              value={user.first_name}
-              onChange={(e) => setUser({ ...user, first_name: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">Last Name</span>
-            <input
-              value={user.last_name}
-              onChange={(e) => setUser({ ...user, last_name: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          {/* Email & Phone */}
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">Email</span>
-            <input
-              value={user.email}
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">Phone</span>
-            <input
-              value={user.phone}
-              onChange={(e) => setUser({ ...user, phone: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          {/* Address Fields */}
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">Address</span>
-            <input
-              value={user.address}
-              onChange={(e) => setUser({ ...user, address: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">City</span>
-            <input
-              value={user.city}
-              onChange={(e) => setUser({ ...user, city: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          <label className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-200">Country</span>
-            <input
-              value={user.country}
-              onChange={(e) => setUser({ ...user, country: e.target.value })}
-              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
-            />
-          </label>
-
-          {/* Theme Toggle */}
-          <div className="flex items-center justify-between mt-4">
-            <div>
-              <div className="text-sm font-semibold">Theme</div>
-              <div className="text-xs text-gray-400">Current: {theme}</div>
-            </div>
-            <button onClick={toggle} className="px-4 py-2 rounded-xl bg-white/6">Toggle Theme</button>
-          </div>
+        <div className="flex flex-col gap-5">
+          {[
+            { label: "First Name", key: "first_name" },
+            { label: "Last Name", key: "last_name" },
+            { label: "Email", key: "email" },
+            { label: "Phone", key: "phone" },
+            { label: "Address", key: "address" },
+            { label: "City", key: "city" },
+            { label: "Country", key: "country" },
+          ].map((field) => (
+            <label key={field.key} className="flex flex-col">
+              <span className="text-sm font-semibold text-gray-200">{field.label}</span>
+              <input
+                value={user[field.key]}
+                onChange={(e) =>
+                  setUser({ ...user, [field.key]: e.target.value })
+                }
+                className="mt-2 p-3 rounded-2xl bg-white/5 border border-white/20 placeholder-gray-400 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                placeholder={`Enter ${field.label}`}
+              />
+            </label>
+          ))}
 
           {/* Save Button */}
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 rounded-xl bg-blue-500"
-            >
-              Save & Go to Dashboard
-            </button>
-          </div>
+          <button
+            onClick={handleSave}
+            className="mt-6 px-6 py-3 rounded-2xl bg-blue-500 text-white font-semibold text-lg hover:bg-blue-600 transition"
+          >
+            Save & Go to Dashboard
+          </button>
         </div>
       </div>
     </div>
