@@ -15,7 +15,7 @@ export default function AdminLogin() {
 
     try {
       // Correct API endpoint: /accounts/admin-login/
-      const res = await fetch(`${API_URL}/accounts/auth/admin-login/`, {
+      const res = await fetch(`${API_URL}/accounts/admin-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
