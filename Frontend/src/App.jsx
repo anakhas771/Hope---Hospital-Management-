@@ -10,6 +10,9 @@ import {
 import { AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
+// Theme Context Provider
+import { ThemeProvider } from "./context/ThemeContext";
+
 // Layout Components
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -34,7 +37,7 @@ import ManageDepartments from "./pages/ManageDepartments";
 import ManageDoctors from "./pages/ManageDoctors";
 import ManageAppointments from "./pages/ManageAppointments";
 
-// User Pages (Departments)
+// User Pages
 import CardiologyPage from "./pages/CardiologyPage";
 import NeurologyPage from "./pages/NeurologyPage";
 import PediatricsPage from "./pages/PediatricsPage";
@@ -42,13 +45,13 @@ import OrthopedicsPage from "./pages/OrthopedicsPage";
 import EmergencyPage from "./pages/EmergencyPage";
 import RadiologyPage from "./pages/RadiologyPage";
 
-// User Dashboard
+// Dashboard + Appointments
 import DashboardPage from "./pages/DashboardPage";
 import AppointmentPage from "./pages/AppointmentPage";
 import PaymentPage from "./pages/PaymentPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// GlassSection wrapper
+// Glass Wrapper
 const GlassSection = ({ children }) => (
   <div className="px-6 py-10">
     <div className="glass-card p-8 space-y-6 hover:backdrop-blur-lg transition-all duration-300">
@@ -64,8 +67,8 @@ function AppContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          
-          {/* ---------------- Landing Page ---------------- */}
+
+          {/* Landing Page */}
           <Route
             path="/"
             element={
@@ -79,7 +82,7 @@ function AppContent() {
             }
           />
 
-          {/* ---------------- Auth Pages ---------------- */}
+          {/* Auth Pages */}
           {[
             { path: "/login", component: LoginPage },
             { path: "/signup", component: SignUpPage },
@@ -97,7 +100,7 @@ function AppContent() {
             />
           ))}
 
-          {/* ---------------- Department Pages ---------------- */}
+          {/* Department Pages */}
           {[
             { path: "cardiology", component: CardiologyPage },
             { path: "neurology", component: NeurologyPage },
@@ -119,29 +122,28 @@ function AppContent() {
             />
           ))}
 
-          {/* ---------------- User Dashboard ---------------- */}
+          {/* Dashboard */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <PageWrapper>
                   <Navbar />
-                  {/* NEW Dashboard – remove GlassSection wrapper */}
-                  <DashboardPage />
+                  <DashboardPage /> {/* No GlassSection wrapper */}
                   <Footer />
                 </PageWrapper>
               </ProtectedRoute>
             }
           />
 
-          {/* Appointment + Payment */}
+          {/* Appointments & Payment */}
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/payment" element={<PaymentPage />} />
 
-          {/* ---------------- Admin Login ---------------- */}
+          {/* Admin Login */}
           <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* ---------------- Admin Panel ---------------- */}
+          {/* Admin Panel */}
           <Route
             path="/admin/*"
             element={
@@ -156,8 +158,11 @@ function AppContent() {
             <Route path="appointments" element={<ManageAppointments />} />
           </Route>
 
-          {/* Redirect old admin URL */}
-          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
+          {/* Redirect old admin path */}
+          <Route
+            path="/admin-dashboard"
+            element={<Navigate to="/admin" replace />}
+          />
         </Routes>
       </AnimatePresence>
     </div>
@@ -167,16 +172,19 @@ function AppContent() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <PayPalScriptProvider
-          options={{
-            "client-id": "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9",
-            currency: "USD",
-          }}
-        >
-          <AppContent />
-        </PayPalScriptProvider>
-      </Router>
+      <ThemeProvider> {/* 👈 FIXED: WRAPPING ENTIRE APP */}
+        <Router>
+          <PayPalScriptProvider
+            options={{
+              "client-id":
+                "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9",
+              currency: "USD",
+            }}
+          >
+            <AppContent />
+          </PayPalScriptProvider>
+        </Router>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
