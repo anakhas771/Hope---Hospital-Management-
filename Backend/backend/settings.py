@@ -78,7 +78,10 @@ DATABASES = {
 
 # -------------------- AUTH --------------------
 AUTH_USER_MODEL = "accounts.User"
-
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.EmailBackend",  # use email login
+    "django.contrib.auth.backends.ModelBackend",  # fallback
+]
 # -------------------- STATIC & MEDIA --------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

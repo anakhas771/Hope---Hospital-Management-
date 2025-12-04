@@ -78,7 +78,7 @@ class LoginSerializer(serializers.Serializer):
 
 
         if not user:
-            raise serializers.ValidationError("Invalid credentials")
+            raise serializers.ValidationError({"non_field_errors": ["Invalid credentials"]})
 
         attrs["user"] = user
         return attrs
