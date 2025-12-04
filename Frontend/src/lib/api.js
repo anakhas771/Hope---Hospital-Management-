@@ -16,13 +16,16 @@ async function safeJson(res) {
 // ------------------------------
 // USER FETCH
 // ------------------------------
+// lib/api.js
 export async function apiFetch(endpoint, method = "GET", body = null, rawToken = null) {
-
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
   const token = rawToken || (await getValidToken());
 
-  const url = `${API_URL}/accounts${endpoint}`;
+  // ✅ Fix: Use correct endpoint for /users routes
+  const url = endpoint.startsWith("/users") 
+    ? `${API_URL}${endpoint}`   // Full path for users
+    : `${API_URL}/accounts${endpoint}`; // Keep /accounts for admin or other endpoints
 
   const res = await fetch(url, {
     method,
