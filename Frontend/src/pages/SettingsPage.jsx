@@ -58,13 +58,10 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 md:px-24 pt-24 pb-12 text-white bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 shadow-2xl">
-        <h2 className="text-3xl font-bold text-center mb-1">Settings</h2>
-        <p className="text-gray-300 text-center mb-6">Update your profile and preferences</p>
-
-        {/* Profile Image Upload */}
-        <div className="flex flex-col items-center mb-8">
+    <div className="min-h-screen px-4 md:px-12 pt-12 text-white bg-transparent flex justify-center">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-10 shadow-2xl gap-8">
+        {/* Profile Image */}
+        <div className="flex flex-col items-center">
           <div className="relative">
             <img
               src={
@@ -72,28 +69,28 @@ const SettingsPage = () => {
                 "https://cdn-icons-png.flaticon.com/512/149/149071.png"
               }
               alt="Profile"
-              className="w-36 h-36 object-cover rounded-full border-4 border-white/20 shadow-xl"
+              className="w-32 h-32 md:w-36 md:h-36 object-cover rounded-full border-4 border-white/20 shadow-lg"
             />
-            <label className="absolute right-0 bottom-0 bg-blue-500 p-3 rounded-full cursor-pointer shadow-md hover:bg-blue-600 transition">
+            <label className="absolute right-0 bottom-0 bg-blue-500 p-2 rounded-full cursor-pointer shadow-md hover:bg-blue-600 transition">
               <input
                 className="hidden"
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
               />
-              <span className="text-lg">📤</span>
+              <span className="text-sm md:text-lg">📤</span>
             </label>
           </div>
           <button
             onClick={clearProfileImage}
-            className="mt-4 px-5 py-2 rounded-xl bg-red-500 text-sm hover:bg-red-600 transition"
+            className="mt-4 px-4 py-2 rounded-xl bg-red-500 text-sm hover:bg-red-600 transition"
           >
             Clear Image
           </button>
         </div>
 
         {/* User Info Form */}
-        <div className="flex flex-col gap-5">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           {[
             { label: "First Name", key: "first_name" },
             { label: "Last Name", key: "last_name" },
@@ -110,19 +107,21 @@ const SettingsPage = () => {
                 onChange={(e) =>
                   setUser({ ...user, [field.key]: e.target.value })
                 }
-                className="mt-2 p-3 rounded-2xl bg-white/5 border border-white/20 placeholder-gray-400 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="mt-2 p-2 md:p-3 rounded-xl bg-white/5 border border-white/20 placeholder-gray-400 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
                 placeholder={`Enter ${field.label}`}
               />
             </label>
           ))}
 
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            className="mt-6 px-6 py-3 rounded-2xl bg-blue-500 text-white font-semibold text-lg hover:bg-blue-600 transition"
-          >
-            Save & Go to Dashboard
-          </button>
+          {/* Save Button spanning full width */}
+          <div className="col-span-full flex justify-end mt-2 md:mt-4">
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 rounded-xl bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+            >
+              Save & Go to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     </div>
