@@ -71,19 +71,15 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get("email")
         password = attrs.get("password")
-
-        # Proper authenticate
-        request = self.context.get("request")
-        user = authenticate(request=request, username=email, password=password)
-
-
+        # authenticate works with username, which is often email
+        user = authenticate(username=email, password=password)
         if not user:
             raise serializers.ValidationError({"non_field_errors": ["Invalid credentials"]})
-
+        if not user.is_staff:
+            raise serializers.ValidationError({"non_field_errors": ["User is not an admin"]})
         attrs["user"] = user
         return attrs
-
-
+    
 # -------------------- DEPARTMENT SERIALIZER --------------------
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
