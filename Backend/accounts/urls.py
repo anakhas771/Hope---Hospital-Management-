@@ -30,7 +30,7 @@ urlpatterns = [
 
     # Admin stats
     path("admin/stats/", admin_stats, name="admin-stats"),
-    path("auth/admin-login/", AdminLoginView.as_view(), name="admin-login"),
+    path("admin-login/", AdminLoginView.as_view(), name="admin-login"),
 
     # Include all router paths
     path("", include(router.urls)),
