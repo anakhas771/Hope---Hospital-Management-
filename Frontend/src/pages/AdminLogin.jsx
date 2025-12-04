@@ -24,7 +24,7 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErr(data.error || data.detail || "Invalid credentials");
+        setErr(data.error || data.detail || data.non_field_errors?.[0] ||  "Invalid credentials");
         return;
       }
 
