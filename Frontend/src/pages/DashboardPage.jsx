@@ -6,9 +6,9 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [appointments, setAppointments] = useState([]);
 
-  // ---------------------------------------
-  // FETCH REAL DATA FROM YOUR DJANGO BACKEND
-  // ---------------------------------------
+  // ------------------------------
+  // FETCH USER + APPOINTMENTS
+  // ------------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -18,16 +18,16 @@ export default function DashboardPage() {
         setUser(userRes.data);
         setAppointments(apptRes.data);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching dashboard:", err);
       }
     };
 
     fetchData();
   }, []);
 
-  // ---------------------------------------
+  // ------------------------------
   // CANCEL APPOINTMENT
-  // ---------------------------------------
+  // ------------------------------
   const cancelAppointment = async (id) => {
     const updated = appointments.filter((a) => a.id !== id);
     const deleted = appointments.find((a) => a.id === id);
@@ -51,7 +51,7 @@ export default function DashboardPage() {
       ),
       {
         position: "top-center",
-        duration: 4000,
+        duration: 3000,
         style: {
           borderRadius: "12px",
           background: "white",
@@ -60,41 +60,39 @@ export default function DashboardPage() {
       }
     );
 
-    // optionally send cancel request to backend
     await axios.post(`/api/user/appointments/${id}/cancel/`);
   };
 
   if (!user)
     return (
-      <div className="w-full flex justify-center py-20 text-lg">Loading...</div>
+      <div className="w-full flex justify-center py-20 text-lg">
+        Loading dashboard...
+      </div>
     );
 
+  // SUMMARY COUNTS
   const completed = appointments.filter((a) => a.status === "Done").length;
   const cancelled = appointments.filter((a) => a.status === "Cancelled").length;
 
   return (
     <div className="w-full min-h-screen bg-gray-100/30 backdrop-blur-md px-8 py-12">
-
       <Toaster />
 
       <div className="flex gap-10">
 
-        {/* ---------------- LEFT PROFILE CARD ---------------- */}
+        {/* LEFT PROFILE */}
         <div className="w-1/4">
           <ProfileCard user={user} />
         </div>
 
-        {/* ---------------- RIGHT SIDE ---------------- */}
+        {/* RIGHT SIDE */}
         <div className="w-3/4 space-y-10">
-
-          {/* SUMMARY CARDS */}
           <div className="flex gap-6">
             <SummaryCard title="All Bookings" value={appointments.length} percentage="100%" />
-            <SummaryCard title="Completed" value={completed} percentage={`${(completed / appointments.length * 100).toFixed(1)}%`} />
-            <SummaryCard title="Cancelled" value={cancelled} percentage={`${(cancelled / appointments.length * 100).toFixed(1)}%`} color="orange" />
+            <SummaryCard title="Completed" value={completed} percentage={`${(completed / Math.max(appointments.length,1) * 100).toFixed(1)}%`} />
+            <SummaryCard title="Cancelled" value={cancelled} percentage={`${(cancelled / Math.max(appointments.length,1) * 100).toFixed(1)}%`} color="orange" />
           </div>
 
-          {/* APPOINTMENTS SECTION */}
           <AppointmentsList
             appointments={appointments}
             cancelAppointment={cancelAppointment}
@@ -105,37 +103,35 @@ export default function DashboardPage() {
   );
 }
 
-
-
-// --------------------------------------------------------------
-// PROFILE CARD COMPONENT
-// --------------------------------------------------------------
+/* ------------------------------ PROFILE CARD ------------------------------ */
 function ProfileCard({ user }) {
   return (
-    <div className="bg-white/40 backdrop-blur-xl shadow-xl rounded-3xl p-6 transition-all duration-300 hover:scale-[1.02]">
+    <div className="bg-white/40 backdrop-blur-xl shadow-xl rounded-3xl p-6 hover:scale-[1.02] transition-all">
       <div className="flex flex-col items-center">
+
+        {/* FIXED PLACEHOLDER IF USER HAS NO IMAGE */}
         <img
-          src={user.profile_picture || "https://i.pravatar.cc/200"}
-          className="w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover"
-          alt=""
+          src={user.profile_picture || "/default-avatar.png"}
+          className="w-28 h-28 rounded-full border-4 border-white shadow-xl object-cover"
+          alt="Profile"
         />
 
-        <h2 className="mt-4 text-xl font-bold">{user.first_name} {user.last_name}</h2>
+        <h2 className="mt-4 text-xl font-bold">
+          {user.first_name} {user.last_name}
+        </h2>
 
         <span className="mt-1 text-sm text-green-700 bg-green-100 px-3 py-1 rounded-full">
           Active User
         </span>
 
-        <button className="mt-4 bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-xl">
+        <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl">
           Add New Appointment
         </button>
 
         <div className="mt-6 w-full space-y-3">
-
           <InfoCard label="Email" value={user.email} />
           <InfoCard label="Gender" value={user.gender || "Not set"} />
           <InfoCard label="Joined" value={new Date(user.date_joined).toDateString()} />
-
         </div>
       </div>
     </div>
@@ -151,47 +147,43 @@ function InfoCard({ label, value }) {
   );
 }
 
-
-
-// --------------------------------------------------------------
-// SUMMARY CARD
-// --------------------------------------------------------------
+/* ------------------------------ SUMMARY CARDS ------------------------------ */
 function SummaryCard({ title, value, percentage, color = "blue" }) {
   return (
-    <div className="bg-white/40 backdrop-blur-xl w-1/3 p-6 rounded-3xl shadow-md transition-all hover:scale-[1.03] hover:shadow-xl">
+    <div className="bg-white/40 backdrop-blur-xl w-1/3 p-6 rounded-3xl shadow-md hover:scale-[1.03] transition-all">
       <p className="text-gray-600">{title}</p>
       <h2 className="text-3xl font-bold mt-2">{value}</h2>
-      <p className={`text-${color}-500 font-medium mt-1`}>{percentage}</p>
+      <p className={`text-${color}-500 mt-1 font-medium`}>{percentage}</p>
     </div>
   );
 }
 
-
-
-// --------------------------------------------------------------
-// APPOINTMENTS LIST COMPONENT
-// --------------------------------------------------------------
+/* ------------------------------ APPOINTMENTS LIST ------------------------------ */
 function AppointmentsList({ appointments, cancelAppointment }) {
   return (
     <div className="bg-white/50 backdrop-blur-xl shadow-lg p-6 rounded-3xl">
       <h2 className="text-xl font-semibold mb-4">Appointments</h2>
 
       <div className="space-y-4">
+        {appointments.length === 0 && (
+          <p className="text-center text-gray-500 py-6">
+            No appointments yet.
+          </p>
+        )}
+
         {appointments.map((item) => (
           <div
             key={item.id}
             className="flex justify-between items-center bg-white/40 p-4 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all"
           >
-            <div>
-              <p className="font-bold text-gray-700">
-                {new Date(item.date).toDateString()}
-              </p>
-            </div>
+            <p className="font-bold text-gray-700">
+              {new Date(item.date).toDateString()}
+            </p>
 
             <div className="w-1/3">
               <p className="font-semibold">{item.title}</p>
               <p className="text-xs text-gray-500">
-                {item.start_time} - {item.end_time}
+                {item.start_time} – {item.end_time}
               </p>
             </div>
 
@@ -209,16 +201,14 @@ function AppointmentsList({ appointments, cancelAppointment }) {
 
             <p className="font-semibold">₹{item.price}</p>
 
-            {/* Cancel Button */}
             <button
               onClick={() => cancelAppointment(item.id)}
-              className="ml-3 px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded-xl"
+              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm"
             >
               Cancel
             </button>
 
-            {/* Pay Button */}
-            <button className="ml-3 px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+            <button className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm">
               Pay
             </button>
           </div>
