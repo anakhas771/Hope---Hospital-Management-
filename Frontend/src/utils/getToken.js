@@ -1,3 +1,4 @@
+// utils/getToken.js
 const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
 
 function b64DecodeUnicode(str) {

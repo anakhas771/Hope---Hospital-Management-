@@ -1,3 +1,5 @@
+
+//lib/api.js
 import { getValidToken } from "../utils/getToken";
 
 export const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
