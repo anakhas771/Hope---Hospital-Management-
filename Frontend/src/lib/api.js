@@ -14,18 +14,17 @@ async function safeJson(res) {
 }
 
 // ------------------------------
-// USER FETCH
+// USER & APPOINTMENTS FETCH
 // ------------------------------
-// lib/api.js
 export async function apiFetch(endpoint, method = "GET", body = null, rawToken = null) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
   const token = rawToken || (await getValidToken());
 
-  // ✅ Fix: Use correct endpoint for /users routes
-  const url = endpoint.startsWith("/users") 
-    ? `${API_URL}${endpoint}`   // Full path for users
-    : `${API_URL}/accounts${endpoint}`; // Keep /accounts for admin or other endpoints
+  // Use full URL for user-related endpoints and appointments
+  const url = endpoint.startsWith("/user") || endpoint.startsWith("/users") || endpoint.startsWith("/appointments")
+    ? `${API_URL}${endpoint}`
+    : `${API_URL}/accounts${endpoint}`;
 
   const res = await fetch(url, {
     method,
@@ -57,7 +56,6 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   if (!token) return (window.location.href = "/admin-login");
 
   const url = `${API_URL}/accounts${endpoint}`;
-
   const res = await fetch(url, {
     method,
     headers: {
@@ -73,36 +71,6 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
       window.location.href = "/admin-login";
     }
     throw new Error("Admin API error");
-  }
-
-  return safeJson(res);
-}
-
-// ------------------------------
-// ADMIN FORM FETCH
-// ------------------------------
-export async function adminFetchForm(endpoint, method = "POST", formData) {
-  if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
-
-  const token = localStorage.getItem("admin_access_token");
-  if (!token) return (window.location.href = "/admin-login");
-
-  const url = `${API_URL}/accounts${endpoint}`;
-
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem("admin_access_token");
-      window.location.href = "/admin-login";
-    }
-    throw new Error("Admin Upload Error");
   }
 
   return safeJson(res);
