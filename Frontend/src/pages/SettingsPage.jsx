@@ -59,7 +59,7 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen px-4 md:px-12 pt-12 text-white bg-transparent flex justify-center">
-      <div className="w-full max-w-4xl flex flex-col md:flex-row items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-10 shadow-2xl gap-8">
+      <div className="mt-12 w-full max-w-4xl flex flex-col md:flex-row items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-10 shadow-2xl gap-8">
         {/* Profile Image */}
         <div className="flex flex-col items-center">
           <div className="relative">
@@ -119,7 +119,7 @@ const SettingsPage = () => {
               onClick={handleSave}
               className="px-6 py-2 rounded-xl bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
             >
-              Save & Go to Dashboard
+              Save
             </button>
           </div>
         </div>
