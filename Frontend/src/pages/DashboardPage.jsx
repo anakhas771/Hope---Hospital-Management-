@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -12,8 +12,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userRes = await axios.get("/api/user/profile/");
-        const apptRes = await axios.get("/api/user/appointments/");
+        const userRes = await api.get("/api/user/profile/");
+        const apptRes = await api.get("/api/user/appointments/");
 
         setUser(userRes.data);
         setAppointments(apptRes.data);
@@ -60,7 +60,7 @@ export default function DashboardPage() {
       }
     );
 
-    await axios.post(`/api/user/appointments/${id}/cancel/`);
+    await api.post(`/api/user/appointments/${id}/cancel/`);
   };
 
   if (!user)
@@ -79,7 +79,6 @@ export default function DashboardPage() {
       <Toaster />
 
       <div className="flex gap-10">
-
         {/* LEFT PROFILE */}
         <div className="w-1/4">
           <ProfileCard user={user} />
@@ -88,9 +87,28 @@ export default function DashboardPage() {
         {/* RIGHT SIDE */}
         <div className="w-3/4 space-y-10">
           <div className="flex gap-6">
-            <SummaryCard title="All Bookings" value={appointments.length} percentage="100%" />
-            <SummaryCard title="Completed" value={completed} percentage={`${(completed / Math.max(appointments.length,1) * 100).toFixed(1)}%`} />
-            <SummaryCard title="Cancelled" value={cancelled} percentage={`${(cancelled / Math.max(appointments.length,1) * 100).toFixed(1)}%`} color="orange" />
+            <SummaryCard
+              title="All Bookings"
+              value={appointments.length}
+              percentage="100%"
+            />
+            <SummaryCard
+              title="Completed"
+              value={completed}
+              percentage={`${(
+                (completed / Math.max(appointments.length, 1)) *
+                100
+              ).toFixed(1)}%`}
+            />
+            <SummaryCard
+              title="Cancelled"
+              value={cancelled}
+              percentage={`${(
+                (cancelled / Math.max(appointments.length, 1)) *
+                100
+              ).toFixed(1)}%`}
+              color="orange"
+            />
           </div>
 
           <AppointmentsList
@@ -108,7 +126,6 @@ function ProfileCard({ user }) {
   return (
     <div className="bg-white/40 backdrop-blur-xl shadow-xl rounded-3xl p-6 hover:scale-[1.02] transition-all">
       <div className="flex flex-col items-center">
-
         {/* FIXED PLACEHOLDER IF USER HAS NO IMAGE */}
         <img
           src={user.profile_picture || "/default-avatar.png"}
@@ -131,7 +148,10 @@ function ProfileCard({ user }) {
         <div className="mt-6 w-full space-y-3">
           <InfoCard label="Email" value={user.email} />
           <InfoCard label="Gender" value={user.gender || "Not set"} />
-          <InfoCard label="Joined" value={new Date(user.date_joined).toDateString()} />
+          <InfoCard
+            label="Joined"
+            value={new Date(user.date_joined).toDateString()}
+          />
         </div>
       </div>
     </div>
@@ -166,9 +186,7 @@ function AppointmentsList({ appointments, cancelAppointment }) {
 
       <div className="space-y-4">
         {appointments.length === 0 && (
-          <p className="text-center text-gray-500 py-6">
-            No appointments yet.
-          </p>
+          <p className="text-center text-gray-500 py-6">No appointments yet.</p>
         )}
 
         {appointments.map((item) => (
