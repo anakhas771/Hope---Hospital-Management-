@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const userRes = await api.get("/user/profile/");
+        const userRes = await api.get("/users/profile/");
         const apptRes = await api.get("/appointments/");
 
         setUser(userRes.data);
