@@ -1,12 +1,8 @@
-// src/utils/getToken.js
 const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
 
-// safe base64 decode for JWT payload (handles URL-safe base64)
 function b64DecodeUnicode(str) {
   try {
-    // replace url-safe chars
     str = str.replace(/-/g, "+").replace(/_/g, "/");
-    // pad with '='
     while (str.length % 4) str += "=";
     return decodeURIComponent(
       atob(str)
@@ -26,14 +22,12 @@ function parseJwt(token) {
     if (parts.length < 2) return null;
     const payload = b64DecodeUnicode(parts[1]);
     return payload ? JSON.parse(payload) : null;
-  } catch (err) {
-    console.error("Invalid JWT:", err);
+  } catch {
     return null;
   }
 }
 
 export async function getValidToken() {
-  // read both possible storage keys
   const access = localStorage.getItem("access") || localStorage.getItem("access_token");
   const refresh = localStorage.getItem("refresh") || localStorage.getItem("refresh_token");
 
@@ -41,9 +35,9 @@ export async function getValidToken() {
   if (!access && refresh) return await refreshToken(refresh);
 
   const payload = parseJwt(access);
-  const isExpired = !payload || payload.exp * 1000 < Date.now();
+  const expired = !payload || payload.exp * 1000 < Date.now();
 
-  if (isExpired && refresh) {
+  if (expired && refresh) {
     return await refreshToken(refresh);
   }
 
@@ -52,14 +46,13 @@ export async function getValidToken() {
 
 async function refreshToken(refresh) {
   try {
-    const res = await fetch(`${API_URL}/auth/token/refresh/`, {
+    const res = await fetch(`${API_URL}/accounts/auth/token/refresh/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh }),
     });
 
     if (!res.ok) {
-      console.error("Refresh token invalid, clearing localStorage.");
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("user");
@@ -67,15 +60,12 @@ async function refreshToken(refresh) {
     }
 
     const data = await res.json();
-    const newAccess = data.access || data.access_token;
-    if (newAccess) {
-      localStorage.setItem("access", newAccess);
-      console.log("🔄 Access token refreshed");
-      return newAccess;
+    if (data.access) {
+      localStorage.setItem("access", data.access);
+      return data.access;
     }
     return null;
-  } catch (err) {
-    console.error("Refresh failed:", err);
+  } catch {
     return null;
   }
 }
