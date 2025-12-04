@@ -75,3 +75,32 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
 
   return safeJson(res);
 }
+// ------------------------------
+// ADMIN FORM FETCH
+// ------------------------------
+export async function adminFetchForm(endpoint, method = "POST", formData) {
+  if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
+
+  const token = localStorage.getItem("admin_access_token");
+  if (!token) return (window.location.href = "/admin-login");
+
+  const url = `${API_URL}/accounts${endpoint}`;
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("admin_access_token");
+      window.location.href = "/admin-login";
+    }
+    throw new Error("Admin Upload Error");
+  }
+
+  return safeJson(res);
+}
