@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { apiFetch } from "../lib/api";
 import { ThemeContext } from "../context/ThemeContext";
+import { Link } from "react-router-dom";
 
 /**
  * Upgraded Dashboard:
@@ -227,12 +228,12 @@ const DashboardPage = () => {
                 Toggle {theme === "dark" ? "Light" : "Dark"} Mode
               </button>
 
-              <a
-                href="/settings"
+              <Link
+                to="/settings"
                 className="w-full block text-center mt-3 text-sm text-gray-300 hover:text-white"
               >
                 Open Settings
-              </a>
+              </Link>
             </div>
           </div>
         </motion.aside>

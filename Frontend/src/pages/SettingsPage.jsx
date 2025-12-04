@@ -1,4 +1,3 @@
-// src/pages/SettingsPage.jsx
 import React, { useContext, useState, useEffect } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import toast from "react-hot-toast";
@@ -17,6 +16,11 @@ const SettingsPage = () => {
     toast.success("Profile saved locally");
   };
 
+  const clearProfileImage = () => {
+    localStorage.removeItem("profile_image");
+    toast.success("Profile image cleared");
+  };
+
   return (
     <div className="min-h-screen px-4 md:px-24 pt-24 pb-12 text-white">
       <div className="max-w-3xl mx-auto bg-white/6 backdrop-blur-2xl border border-white/8 rounded-3xl p-8 shadow-2xl">
@@ -26,17 +30,29 @@ const SettingsPage = () => {
         <div className="mt-6 grid grid-cols-1 gap-4">
           <label className="flex flex-col">
             <span className="text-sm font-semibold text-gray-200">First Name</span>
-            <input value={user.first_name} onChange={(e)=>setUser({...user, first_name:e.target.value})} className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8" />
+            <input
+              value={user.first_name}
+              onChange={(e) => setUser({ ...user, first_name: e.target.value })}
+              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
+            />
           </label>
 
           <label className="flex flex-col">
             <span className="text-sm font-semibold text-gray-200">Last Name</span>
-            <input value={user.last_name} onChange={(e)=>setUser({...user, last_name:e.target.value})} className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8" />
+            <input
+              value={user.last_name}
+              onChange={(e) => setUser({ ...user, last_name: e.target.value })}
+              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
+            />
           </label>
 
           <label className="flex flex-col">
             <span className="text-sm font-semibold text-gray-200">Email</span>
-            <input value={user.email} onChange={(e)=>setUser({...user, email:e.target.value})} className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8" />
+            <input
+              value={user.email}
+              onChange={(e) => setUser({ ...user, email: e.target.value })}
+              className="mt-2 p-3 rounded-xl bg-white/4 border border-white/8"
+            />
           </label>
 
           <div className="flex items-center justify-between mt-4">
@@ -49,7 +65,7 @@ const SettingsPage = () => {
 
           <div className="flex gap-3 mt-6">
             <button onClick={handleSave} className="px-4 py-2 rounded-xl bg-blue-500">Save</button>
-            <button onClick={()=>{ localStorage.removeItem("profile_image"); toast.success("Profile image cleared"); }} className="px-4 py-2 rounded-xl bg-red-500">Clear Profile Image</button>
+            <button onClick={clearProfileImage} className="px-4 py-2 rounded-xl bg-red-500">Clear Profile Image</button>
           </div>
         </div>
       </div>
