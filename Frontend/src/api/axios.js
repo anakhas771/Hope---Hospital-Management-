@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://YOUR_BACKEND_DOMAIN.onrender.com", 
+  baseURL: "https://hope-backend-mvos.onrender.com", 
   withCredentials: true,
 });
 
