@@ -1,312 +1,167 @@
-// src/pages/DashboardPage.jsx
-import React, { useEffect, useState } from "react";
-/* eslint-disable no-unused-vars */
-import { motion } from "framer-motion";
-import toast, { Toaster } from "react-hot-toast";
-import { apiFetch } from "../lib/api";
+import React, { useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
 
-const DashboardPage = () => {
-  const [user, setUser] = useState(null);
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function DashboardPage() {
+  const [appointments, setAppointments] = useState([
+    { id: 1, date: "29 Sep", title: "Plumbing", time: "11:00–13:00", status: "Cancelled", price: "$50" },
+    { id: 2, date: "15 Oct", title: "Carpenting", time: "13:45–15:30", status: "Booked", price: "$345" },
+    { id: 3, date: "11 Nov", title: "Painting", time: "9:00–12:30", status: "Done", price: "$130" },
+    { id: 4, date: "13 Apr", title: "Hair Drying", time: "11:00–13:00", status: "Done", price: "$50" },
+    { id: 5, date: "24 Feb", title: "Blueprint Structure", time: "9:00–12:30", status: "Booked", price: "$80" }
+  ]);
 
-  /* ---------------- LOAD USER & APPOINTMENTS ---------------- */
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const access = localStorage.getItem("access");
-    if (!storedUser || !access) return;
-
-    try {
-      const userData = JSON.parse(storedUser);
-      const finalUser = {
-        ...userData,
-        token: access,
-        full_name:
-          `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
-      };
-      setUser(finalUser);
-      fetchAppointments(access, userData.id);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  const fetchAppointments = async (token, userId) => {
-    try {
-      setLoading(true);
-      const data = await apiFetch(
-        `/appointments/?user=${userId}`,
-        "GET",
-        null,
-        token
-      );
-      const list = Array.isArray(data) ? data : data.appointments || [];
-      setAppointments(
-        list.map((appt) => ({
-          id: appt.id,
-          doctor: appt.doctor?.name || "Unknown",
-          date_time: appt.date_time,
-          status: appt.status || "pending",
-        }))
-      );
-    } catch (err) {
-      toast.error("Failed to fetch appointments");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ---------------- CANCEL APPOINTMENT ---------------- */
   const cancelAppointment = (id) => {
-    // Temp cancel in UI
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "cancelled-temp" } : a))
-    );
+    const updated = appointments.filter(a => a.id !== id);
+    const deleted = appointments.find(a => a.id === id);
+    setAppointments(updated);
 
-    const toastId = toast.custom(
-      (t) => (
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className={`${
-            t.visible ? "opacity-100" : "opacity-0"
-          } bg-white/20 backdrop-blur-xl text-white px-5 py-4 rounded-xl shadow-xl border border-white/20 flex items-center gap-3`}
+    toast((t) => (
+      <div className="text-center">
+        <p className="font-semibold text-gray-900">Appointment cancelled</p>
+        <button
+          className="text-blue-600 underline text-sm mt-1"
+          onClick={() => {
+            setAppointments((prev) => [...prev, deleted]);
+            toast.dismiss(t.id);
+          }}
         >
-          <p className="font-medium">Appointment removed</p>
-
-          <button
-            onClick={() => undoCancel(id, toastId)}
-            className="px-3 py-1 bg-blue-500/80 hover:bg-blue-600 rounded-lg text-sm"
-          >
-            Undo
-          </button>
-
-          <button
-            onClick={() => toast.dismiss(toastId)}
-            className="text-red-300 hover:text-red-400 font-bold ml-2"
-          >
-            ✕
-          </button>
-        </motion.div>
-      ),
-      { position: "bottom-center", duration: 5000 }
-    );
-
-    // Auto-delete after 5s if not undone
-    setTimeout(async () => {
-      const stillCancelled =
-        appointments.find((a) => a.id === id)?.status === "cancelled-temp";
-
-      if (stillCancelled) {
-        try {
-          await apiFetch(`/appointments/${id}/`, "DELETE", null, user.token);
-          setAppointments((prev) => prev.filter((a) => a.id !== id));
-
-          toast.success("✔ Appointment cancelled!", {
-            position: "bottom-center",
-          });
-        } catch (err) {
-          toast.error("Cancellation failed!", { position: "bottom-center" });
-        }
+          Undo
+        </button>
+      </div>
+    ), {
+      position: "top-center",
+      duration: 4000,
+      style: {
+        borderRadius: "10px",
+        background: "white",
+        padding: "12px"
       }
-    }, 5000);
-  };
-
-  /* ---------------- UNDO CANCEL ---------------- */
-  const undoCancel = (id, toastId) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "pending" } : a))
-    );
-    toast.dismiss(toastId);
-
-    toast.success("✨ Appointment restored!", {
-      position: "bottom-center",
     });
   };
 
-  /* ---------------- PAID ---------------- */
-  const markPaid = (id) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "paid" } : a))
-    );
-    toast.success("💳 Marked as Paid!", { position: "bottom-center" });
-  };
-
-  /* ---------------- DATE FORMAT ---------------- */
-  const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleString("en-IN", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  /* ---------------- LOADING ---------------- */
-  if (!user)
-    return <p className="text-center mt-10 text-white">Loading...</p>;
-
-  const upcomingAppointments = appointments.filter(
-    (appt) =>
-      new Date(appt.date_time) >= new Date() && appt.status !== "cancelled-temp"
-  );
-
-  const pastAppointments = appointments.filter(
-    (appt) =>
-      new Date(appt.date_time) < new Date() && appt.status !== "cancelled-temp"
-  );
-
-  /* ---------------- UI STARTS ---------------- */
   return (
-    <div className="min-h-screen px-4 md:px-12 pt-24 pb-12 text-white bg-transparent">
+    <div className="w-full min-h-screen bg-gray-100/30 backdrop-blur-md px-6 py-10">
+
       <Toaster />
 
-      <div className="flex flex-col md:flex-row gap-10">
+      <div className="flex gap-8">
+
         {/* ---------------- LEFT PROFILE CARD ---------------- */}
-        <motion.div
-          className="md:w-1/4 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-8 shadow-xl"
-          initial={{ opacity: 0, x: -25 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-3xl font-bold mb-6">{user.full_name}</h2>
+        <div className="w-1/4">
+          <div className="bg-white/40 backdrop-blur-xl shadow-xl rounded-3xl p-6 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex flex-col items-center">
+              <img
+                src="https://i.pravatar.cc/200"
+                className="w-28 h-28 rounded-full border-4 border-white shadow-lg"
+                alt=""
+              />
 
-          <div className="space-y-3 text-gray-200">
-            <p>
-              <span className="font-semibold">Email:</span> {user.email}
-            </p>
-            <p>
-              <span className="font-semibold">Joined:</span>{" "}
-              {user.date_joined
-                ? new Date(user.date_joined).toLocaleString("en-IN", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : "N/A"}
-            </p>
-            <p>
-              <span className="font-semibold">Total Appointments:</span>{" "}
-              {appointments.length}
-            </p>
-            <p>
-              <span className="font-semibold">Account Status:</span>{" "}
-              <span className="text-green-400">Active ✔</span>
-            </p>
-          </div>
-        </motion.div>
+              <h2 className="mt-4 text-xl font-bold">Harriet Nunez</h2>
+              <span className="mt-1 text-sm text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                New Client
+              </span>
 
-        {/* ---------------- RIGHT CONTENT ---------------- */}
-        <div className="flex-1 flex flex-col gap-8">
-          {/* top cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card title="Upcoming" value={upcomingAppointments.length} />
-            <Card title="Past" value={pastAppointments.length} delay={0.1} />
-            <Card
-              title="Recent Activity"
-              value={Math.floor(Math.random() * 20) + 5}
-              delay={0.2}
-            />
-          </div>
+              <button className="mt-4 bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-xl">
+                Add New Appointment
+              </button>
 
-          {/* bottom small cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SmallCard />
-            <TipsCard />
-          </div>
-
-          {/* appointments list */}
-          <div className="grid grid-cols-1 gap-6">
-            {appointments.map((appt) => (
-              <motion.div
-                key={appt.id}
-                className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-5 flex justify-between items-center hover:scale-[1.02] transition-all"
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div>
-                  <h4 className="text-lg font-semibold">{appt.doctor}</h4>
-                  <p className="text-gray-300">
-                    {formatDate(appt.date_time)}
-                  </p>
+              {/* Profile Details */}
+              <div className="mt-6 w-full space-y-3">
+                <div className="bg-white/50 backdrop-blur p-3 rounded-xl">
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-sm font-medium">runolsfdir.gillian@hotmail.com</p>
                 </div>
 
-                <div className="flex gap-2">
-                  {appt.status !== "paid" && (
-                    <button
-                      onClick={() => markPaid(appt.id)}
-                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded-xl font-semibold"
-                    >
-                      Paid
-                    </button>
-                  )}
+                <div className="bg-white/50 backdrop-blur p-3 rounded-xl">
+                  <p className="text-xs text-gray-500">Gender</p>
+                  <p className="text-sm font-medium">Female</p>
+                </div>
 
+                <div className="bg-white/50 backdrop-blur p-3 rounded-xl">
+                  <p className="text-xs text-gray-500">Alerts</p>
+                  <p className="text-sm font-medium">Allows Marketing Notifications</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ---------------- RIGHT CONTENT SECTION ---------------- */}
+        <div className="w-3/4 space-y-8">
+
+          {/* ----------- TOP SUMMARY CARDS ----------- */}
+          <div className="flex gap-6">
+            <SummaryCard title="All Bookings" value="5" percentage="35.67%" />
+            <SummaryCard title="Completed" value="2" percentage="25%" />
+            <SummaryCard title="Cancelled" value="5" percentage="35.67%" color="orange" />
+          </div>
+
+          {/* ----------- APPOINTMENTS LIST ----------- */}
+          <div className="bg-white/50 backdrop-blur-xl shadow-lg p-6 rounded-3xl">
+            <h2 className="text-xl font-semibold mb-4">Appointments</h2>
+
+            <div className="space-y-4">
+              {appointments.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center bg-white/40 p-4 rounded-xl hover:shadow-lg transition-all"
+                >
+                  {/* DATE + TITLE */}
+                  <div>
+                    <p className="font-bold text-gray-700">{item.date}</p>
+                  </div>
+
+                  <div className="w-1/3">
+                    <p className="font-semibold">{item.title}</p>
+                    <p className="text-xs text-gray-500">{item.time}</p>
+                  </div>
+
+                  {/* STATUS */}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm ${
+                      item.status === "Done"
+                        ? "bg-green-100 text-green-600"
+                        : item.status === "Booked"
+                        ? "bg-blue-100 text-blue-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
+
+                  {/* PRICE */}
+                  <p className="font-semibold">{item.price}</p>
+
+                  {/* CANCEL BUTTON */}
                   <button
-                    onClick={() => cancelAppointment(appt.id)}
-                    className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-xl font-semibold"
+                    onClick={() => cancelAppointment(item.id)}
+                    className="ml-3 px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded-xl"
                   >
                     Cancel
                   </button>
+
+                  {/* Pay Button */}
+                  <button className="ml-3 px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                    Pay
+                  </button>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
+
         </div>
       </div>
     </div>
   );
-};
+}
 
-/* ---------------- REUSABLE CARDS ---------------- */
-const Card = ({ title, value, delay = 0 }) => (
-  <motion.div
-    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center hover:scale-105 transition-all"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-  >
-    <p className="text-gray-300">{title}</p>
-    <p className="text-3xl font-bold">{value}</p>
-  </motion.div>
-);
-
-const SmallCard = () => (
-  <motion.div
-    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
-    initial={{ opacity: 0, y: 25 }}
-    animate={{ opacity: 1, y: 0 }}
-  >
-    <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
-    <div className="flex gap-3">
-      <button className="px-3 py-1 bg-blue-500/80 hover:bg-blue-600 rounded-xl font-semibold">
-        Book
-      </button>
-      <button className="px-3 py-1 bg-green-500/80 hover:bg-green-600 rounded-xl font-semibold">
-        Report
-      </button>
-      <button className="px-3 py-1 bg-purple-500/80 hover:bg-purple-600 rounded-xl font-semibold">
-        History
-      </button>
+/* SUMMARY CARD COMPONENT */
+function SummaryCard({ title, value, percentage, color = "blue" }) {
+  return (
+    <div className="bg-white/40 backdrop-blur-xl w-1/3 p-6 rounded-3xl shadow-md transition-all hover:scale-[1.03] hover:shadow-xl">
+      <p className="text-gray-600">{title}</p>
+      <h2 className="text-3xl font-bold mt-2">{value}</h2>
+      <p className={`text-${color}-500 font-medium mt-1`}>{percentage}</p>
     </div>
-  </motion.div>
-);
-
-const TipsCard = () => (
-  <motion.div
-    className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 hover:scale-105 transition-all"
-    initial={{ opacity: 0, y: 25 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.1 }}
-  >
-    <h3 className="text-lg font-semibold mb-3">Health Tip</h3>
-    <p className="text-gray-300">
-      Drink at least 2–3 liters of water daily to stay hydrated.
-    </p>
-  </motion.div>
-);
-
-export default DashboardPage;
+  );
+}
