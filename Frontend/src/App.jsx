@@ -10,6 +10,7 @@ import {
 import { AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
+// Layout Components
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Services from "./components/Services";
@@ -20,16 +21,20 @@ import AdminRoute from "./components/AdminRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AdminLayout from "./components/AdminLayout";
 
+// Auth Pages
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
+
+// Admin Pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLogin from "./pages/AdminLogin";
 import ManageDepartments from "./pages/ManageDepartments";
 import ManageDoctors from "./pages/ManageDoctors";
 import ManageAppointments from "./pages/ManageAppointments";
 
+// User Pages (Departments)
 import CardiologyPage from "./pages/CardiologyPage";
 import NeurologyPage from "./pages/NeurologyPage";
 import PediatricsPage from "./pages/PediatricsPage";
@@ -37,6 +42,7 @@ import OrthopedicsPage from "./pages/OrthopedicsPage";
 import EmergencyPage from "./pages/EmergencyPage";
 import RadiologyPage from "./pages/RadiologyPage";
 
+// User Dashboard
 import DashboardPage from "./pages/DashboardPage";
 import AppointmentPage from "./pages/AppointmentPage";
 import PaymentPage from "./pages/PaymentPage";
@@ -58,50 +64,40 @@ function AppContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          {/* Landing Page */}
+          
+          {/* ---------------- Landing Page ---------------- */}
           <Route
             path="/"
             element={
               <>
                 <Navbar />
-                <GlassSection>
-                  <Hero />
-                </GlassSection>
-                <GlassSection>
-                  <Services />
-                </GlassSection>
-                <GlassSection>
-                  <Departments />
-                </GlassSection>
+                <GlassSection><Hero /></GlassSection>
+                <GlassSection><Services /></GlassSection>
+                <GlassSection><Departments /></GlassSection>
                 <Footer />
               </>
             }
           />
 
-          {/* Auth Pages */}
+          {/* ---------------- Auth Pages ---------------- */}
           {[
             { path: "/login", component: LoginPage },
             { path: "/signup", component: SignUpPage },
             { path: "/forgot-password", component: ForgotPasswordPage },
             { path: "/change-password", component: ChangePasswordPage },
-          ].map((item) => {
-            const Component = item.component;
-            return (
-              <Route
-                key={item.path}
-                path={item.path}
-                element={
-                  <div className="flex items-center justify-center min-h-screen px-6">
-                    <GlassSection>
-                      <Component />
-                    </GlassSection>
-                  </div>
-                }
-              />
-            );
-          })}
+          ].map(({ path, component: Component }) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <div className="flex items-center justify-center min-h-screen px-6">
+                  <GlassSection><Component /></GlassSection>
+                </div>
+              }
+            />
+          ))}
 
-          {/* Department Pages */}
+          {/* ---------------- Department Pages ---------------- */}
           {[
             { path: "cardiology", component: CardiologyPage },
             { path: "neurology", component: NeurologyPage },
@@ -109,48 +105,43 @@ function AppContent() {
             { path: "orthopedics", component: OrthopedicsPage },
             { path: "emergency", component: EmergencyPage },
             { path: "radiology", component: RadiologyPage },
-          ].map((item) => {
-            const Component = item.component;
-            return (
-              <Route
-                key={item.path}
-                path={`/departments/${item.path}`}
-                element={
-                  <PageWrapper>
-                    <Navbar />
-                    <GlassSection>
-                      <Component />
-                    </GlassSection>
-                    <Footer />
-                  </PageWrapper>
-                }
-              />
-            );
-          })}
+          ].map(({ path, component: Component }) => (
+            <Route
+              key={path}
+              path={`/departments/${path}`}
+              element={
+                <PageWrapper>
+                  <Navbar />
+                  <GlassSection><Component /></GlassSection>
+                  <Footer />
+                </PageWrapper>
+              }
+            />
+          ))}
 
-          {/* User Dashboard */}
+          {/* ---------------- User Dashboard ---------------- */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <PageWrapper>
                   <Navbar />
-                  <GlassSection>
-                    <DashboardPage />
-                  </GlassSection>
+                  {/* NEW Dashboard – remove GlassSection wrapper */}
+                  <DashboardPage />
                   <Footer />
                 </PageWrapper>
               </ProtectedRoute>
             }
           />
 
+          {/* Appointment + Payment */}
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/payment" element={<PaymentPage />} />
 
-          {/* Admin Login */}
+          {/* ---------------- Admin Login ---------------- */}
           <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* Admin Dashboard & Nested Admin Pages */}
+          {/* ---------------- Admin Panel ---------------- */}
           <Route
             path="/admin/*"
             element={
@@ -165,11 +156,8 @@ function AppContent() {
             <Route path="appointments" element={<ManageAppointments />} />
           </Route>
 
-          {/* Redirect old admin-dashboard URL */}
-          <Route
-            path="/admin-dashboard"
-            element={<Navigate to="/admin" replace />}
-          />
+          {/* Redirect old admin URL */}
+          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
         </Routes>
       </AnimatePresence>
     </div>
@@ -182,8 +170,7 @@ export default function App() {
       <Router>
         <PayPalScriptProvider
           options={{
-            "client-id":
-              "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9",
+            "client-id": "AaMufrQQFOuE7gvgF1hjBWE8U20g--oX2vfyzR8n1UMy_PdYVd6wT435rkGQcxOo4PoimaUnjSwmQMz9",
             currency: "USD",
           }}
         >
