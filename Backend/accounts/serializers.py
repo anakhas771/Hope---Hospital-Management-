@@ -73,7 +73,9 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get("password")
 
         # Proper authenticate
-        user = authenticate(email=email, password=password)
+        request = self.context.get("request")
+        user = authenticate(request=request, username=email, password=password)
+
 
         if not user:
             raise serializers.ValidationError("Invalid credentials")

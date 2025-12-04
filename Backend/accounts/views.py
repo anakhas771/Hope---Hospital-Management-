@@ -263,12 +263,13 @@ class AdminLoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
-
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        # pass request into serializer context so validate() can call authenticate(request=...)
+        serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
-        user = authenticate(request, email=serializer.validated_data["email"], password=serializer.validated_data["password"])
+        user = serializer.validated_data.get("user")
+        # user should already be authenticated by the serializer
         if not user:
             return Response({"error": "Invalid credentials"}, status=401)
         if not (user.is_staff or user.is_superuser):
@@ -281,4 +282,3 @@ class AdminLoginView(generics.GenericAPIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token)
         }, status=200)
-
