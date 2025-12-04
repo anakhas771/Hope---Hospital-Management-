@@ -264,13 +264,14 @@ class AdminLoginView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
+        user = serializer.validated_data['user']
 
+        # You can create a token if using DRF token auth
+        # or just return user info
         return Response({
             "email": user.email,
             "is_staff": user.is_staff,
             "is_superuser": user.is_superuser,
-            "message": "Login successful"
-        })
+        }, status=status.HTTP_200_OK)
