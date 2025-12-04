@@ -282,13 +282,3 @@ class AdminLoginView(generics.GenericAPIView):
             "access": str(refresh.access_token)
         }, status=200)
 
-# -------------------- USER PROFILE (AUTH REQUIRED) --------------------
-
-class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Return logged-in user's full profile"""
-        user = request.user
-        data = UserSerializer(user).data
-        return Response(data, status=200)

@@ -11,8 +11,7 @@ UserViewSet,
 ChangePasswordView,
 admin_stats,
 AdminLoginView,
-reset_password,
-UserProfileView
+reset_password
 )
 
 # Router for viewsets
@@ -35,7 +34,4 @@ urlpatterns = [
 
     # Include all router paths
     path("", include(router.urls)),
-
-    path("user/profile/", UserProfileView.as_view(), name="user-profile"),
-
 ]
