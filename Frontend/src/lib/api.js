@@ -1,5 +1,4 @@
-
-//lib/api.js
+// lib/api.js
 import { getValidToken } from "../utils/getToken";
 
 export const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onrender.com").replace(/\/$/, "");
@@ -13,18 +12,28 @@ async function safeJson(res) {
   }
 }
 
-// ------------------------------
-// USER & APPOINTMENTS FETCH
-// ------------------------------
+/* ============================================================
+   USER + APPOINTMENTS API (NORMAL USER)
+   Auto-prefix with /accounts/
+============================================================ */
 export async function apiFetch(endpoint, method = "GET", body = null, rawToken = null) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
   const token = rawToken || (await getValidToken());
 
-  // Use full URL for user-related endpoints and appointments
-  const url = endpoint.startsWith("/user") || endpoint.startsWith("/users") || endpoint.startsWith("/appointments")
-    ? `${API_URL}${endpoint}`
-    : `${API_URL}/accounts${endpoint}`;
+  // ――― Correct paths ―――
+  let fixedEndpoint = endpoint;
+
+  if (endpoint.startsWith("/user/"))
+    fixedEndpoint = "/accounts" + endpoint;
+
+  else if (endpoint.startsWith("/appointments/") || endpoint === "/appointments/")
+    fixedEndpoint = "/accounts" + endpoint;
+
+  else
+    fixedEndpoint = "/accounts" + endpoint;
+
+  const url = `${API_URL}${fixedEndpoint}`;
 
   const res = await fetch(url, {
     method,
@@ -46,9 +55,9 @@ export async function apiFetch(endpoint, method = "GET", body = null, rawToken =
   return safeJson(res);
 }
 
-// ------------------------------
-// ADMIN FETCH
-// ------------------------------
+/* ============================================================
+   ADMIN JSON REQUESTS
+============================================================ */
 export async function adminFetch(endpoint, method = "GET", body = null) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
@@ -56,6 +65,7 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
   if (!token) return (window.location.href = "/admin-login");
 
   const url = `${API_URL}/accounts${endpoint}`;
+
   const res = await fetch(url, {
     method,
     headers: {
@@ -75,9 +85,10 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
 
   return safeJson(res);
 }
-// ------------------------------
-// ADMIN FORM FETCH
-// ------------------------------
+
+/* ============================================================
+   ADMIN FORM-DATA REQUESTS (IMAGES, FILE UPLOADS)
+============================================================ */
 export async function adminFetchForm(endpoint, method = "POST", formData) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
