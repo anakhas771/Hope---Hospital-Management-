@@ -24,10 +24,16 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErr(data.error || data.detail || data.non_field_errors?.[0] ||  "Invalid credentials");
+        setErr(
+          data.error ||
+            data.detail ||
+            data.non_field_errors?.[0] ||
+            "Invalid credentials"
+        );
         return;
       }
-
+      localStorage.setItem("admin_access", data.access);
+      localStorage.setItem("admin_refresh", data.refresh);
 
       navigate("/admin-dashboard");
     } catch (err) {
