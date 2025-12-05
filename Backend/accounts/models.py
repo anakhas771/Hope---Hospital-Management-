@@ -35,7 +35,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     reset_token = models.CharField(max_length=64, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
-
+    is_superuser = models.BooleanField(default=False)
+    
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
