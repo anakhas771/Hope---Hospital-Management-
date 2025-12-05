@@ -14,30 +14,31 @@ export default function AdminLogin() {
     setErr("");
 
     try {
-      // Correct API endpoint: /accounts/admin-login/
       const res = await fetch(`${API_URL}/accounts/admin-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await (async () => {
+        const text = await res.text();
+        try { return text ? JSON.parse(text) : {}; } catch { return { raw: text }; }
+      })();
 
       if (!res.ok) {
-        setErr(
-          data.error ||
-            data.detail ||
-            data.non_field_errors?.[0] ||
-            "Invalid credentials"
-        );
+        // show useful message if available
+        setErr(data.error || data.detail || data.non_field_errors?.[0] || "Invalid credentials");
         return;
       }
-      localStorage.setItem("admin_access", data.access);
-      localStorage.setItem("admin_refresh", data.refresh);
+
+      // store with the canonical names used across the app:
+      localStorage.setItem("admin_access_token", data.access);
+      localStorage.setItem("admin_refresh_token", data.refresh);
+      localStorage.setItem("admin_user", JSON.stringify(data.user || data.admin || {}));
 
       navigate("/admin-dashboard");
     } catch (err) {
-      setErr("Server error: " + err.message);
+      setErr("Server error: " + (err.message || err));
     }
   };
 

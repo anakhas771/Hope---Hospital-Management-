@@ -4,9 +4,7 @@ const API_URL = (import.meta.env.VITE_API_URL || "https://hope-backend-mvos.onre
 // safe base64 decode for JWT payload (handles URL-safe base64)
 function b64DecodeUnicode(str) {
   try {
-    // replace url-safe chars
     str = str.replace(/-/g, "+").replace(/_/g, "/");
-    // pad with '='
     while (str.length % 4) str += "=";
     return decodeURIComponent(
       atob(str)
@@ -33,15 +31,15 @@ function parseJwt(token) {
 }
 
 export async function getValidToken() {
-  // read both possible storage keys
-  const access = localStorage.getItem("access") || localStorage.getItem("access_token");
-  const refresh = localStorage.getItem("refresh") || localStorage.getItem("refresh_token");
+  // canonical keys: "access" or "access_token"; also check user keys
+  const access = localStorage.getItem("access") || localStorage.getItem("access_token") || localStorage.getItem("admin_access_token");
+  const refresh = localStorage.getItem("refresh") || localStorage.getItem("refresh_token") || localStorage.getItem("admin_refresh_token");
 
   if (!access && !refresh) return null;
   if (!access && refresh) return await refreshToken(refresh);
 
   const payload = parseJwt(access);
-  const isExpired = !payload || payload.exp * 1000 < Date.now();
+  const isExpired = !payload || (payload.exp * 1000 < Date.now());
 
   if (isExpired && refresh) {
     return await refreshToken(refresh);
@@ -52,7 +50,8 @@ export async function getValidToken() {
 
 async function refreshToken(refresh) {
   try {
-    const res = await fetch(`${API_URL}/auth/token/refresh/`, {
+    // NOTE: your backend exposes token refresh at /accounts/auth/token/refresh/
+    const res = await fetch(`${API_URL}/accounts/auth/token/refresh/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh }),
@@ -60,16 +59,17 @@ async function refreshToken(refresh) {
 
     if (!res.ok) {
       console.error("Refresh token invalid, clearing localStorage.");
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-      localStorage.removeItem("user");
+      // clear all possible keys
+      ["access","access_token","refresh","refresh_token","admin_access_token","admin_refresh_token","user","admin_user"].forEach(k => localStorage.removeItem(k));
       return null;
     }
 
     const data = await res.json();
     const newAccess = data.access || data.access_token;
     if (newAccess) {
+      // store in both canonical user and admin keys just in case
       localStorage.setItem("access", newAccess);
+      localStorage.setItem("access_token", newAccess);
       console.log("🔄 Access token refreshed");
       return newAccess;
     }

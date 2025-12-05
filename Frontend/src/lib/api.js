@@ -23,7 +23,6 @@ export async function apiFetch(endpoint, method = "GET", body = null, rawToken =
 
   const url = `${API_URL}/accounts${endpoint}`;
 
-  // If caller passed token, use it. Else fetch valid token.
   const token = rawToken || (await getValidToken());
 
   const headers = {
@@ -39,8 +38,7 @@ export async function apiFetch(endpoint, method = "GET", body = null, rawToken =
 
   if (!res.ok) {
     if (res.status === 401) {
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
+      ["access","access_token","refresh","refresh_token"].forEach(k => localStorage.removeItem(k));
       window.location.href = "/login";
     }
     const err = await safeJson(res).catch(() => ({}));
@@ -56,13 +54,15 @@ export async function apiFetch(endpoint, method = "GET", body = null, rawToken =
 export async function adminFetch(endpoint, method = "GET", body = null) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
-  const token = localStorage.getItem("admin_access_token");
+  // canonical admin keys
+  const token = localStorage.getItem("admin_access_token") || localStorage.getItem("admin_access") || localStorage.getItem("access");
   if (!token) {
     window.location.href = "/admin-login";
     return;
   }
 
-  const url = `${API_URL}${endpoint}`;
+  // IMPORTANT: admin endpoints live under /accounts/ on your backend
+  const url = `${API_URL}/accounts${endpoint}`;
 
   const res = await fetch(url, {
     method,
@@ -75,8 +75,7 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
 
   if (!res.ok) {
     if (res.status === 401) {
-      localStorage.removeItem("admin_access_token");
-      localStorage.removeItem("admin_refresh_token");
+      ["admin_access_token","admin_refresh_token","admin_access","admin_refresh"].forEach(k => localStorage.removeItem(k));
       window.location.href = "/admin-login";
     }
     const err = await safeJson(res).catch(() => ({}));
@@ -92,13 +91,13 @@ export async function adminFetch(endpoint, method = "GET", body = null) {
 export async function adminFetchForm(endpoint, method = "POST", formData) {
   if (!endpoint.startsWith("/")) endpoint = "/" + endpoint;
 
-  const token = localStorage.getItem("admin_access_token");
+  const token = localStorage.getItem("admin_access_token") || localStorage.getItem("admin_access");
   if (!token) {
     window.location.href = "/admin-login";
     return;
   }
 
-  const url = `${API_URL}${endpoint}`;
+  const url = `${API_URL}/accounts${endpoint}`;
 
   const res = await fetch(url, {
     method,
@@ -111,6 +110,7 @@ export async function adminFetchForm(endpoint, method = "POST", formData) {
   if (!res.ok) {
     if (res.status === 401) {
       localStorage.removeItem("admin_access_token");
+      localStorage.removeItem("admin_refresh_token");
       window.location.href = "/admin-login";
     }
     const err = await safeJson(res).catch(() => ({}));
