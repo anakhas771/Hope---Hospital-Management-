@@ -206,9 +206,12 @@ class AdminLoginSerializer(serializers.Serializer):
         email = attrs.get("email")
         password = attrs.get("password")
 
+        if email is None or password is None:
+            raise serializers.ValidationError("Email and password required")
+
         user = authenticate(
             request=self.context.get("request"),
-            email=email,
+            username=email,   # 👈 Use email instead of username
             password=password
         )
 
@@ -216,7 +219,7 @@ class AdminLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid credentials")
 
         if not user.is_staff:
-            raise serializers.ValidationError("Not allowed — Admin only")
+            raise serializers.ValidationError("You are not admin")
 
         attrs["user"] = user
         return attrs

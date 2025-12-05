@@ -4,12 +4,12 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
 from django.utils.timezone import now
 from django.utils.crypto import get_random_string
 from datetime import timedelta
-
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Department, Doctor, Appointment, UserPasswordResetToken
@@ -255,9 +255,13 @@ class UserViewSet(viewsets.ModelViewSet):
 class AdminLoginView(generics.GenericAPIView):
     serializer_class = AdminLoginSerializer
     permission_classes = [AllowAny]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]  # 👈 IMPORTANT
 
     def post(self, request):
-        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer = self.get_serializer(
+            data=request.data, 
+            context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
@@ -266,4 +270,6 @@ class AdminLoginView(generics.GenericAPIView):
             "email": user.email,
             "is_staff": user.is_staff,
             "is_superuser": user.is_superuser,
+            "access": "dummy-admin-access-token",   # add real JWT here
+            "refresh": "dummy-admin-refresh-token"
         }, status=200)
