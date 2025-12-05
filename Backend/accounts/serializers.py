@@ -211,7 +211,7 @@ class AdminLoginSerializer(serializers.Serializer):
 
         user = authenticate(
             request=self.context.get("request"),
-            username=email,   # 👈 Use email instead of username
+            email=email,   # 👈 Use email instead of username
             password=password
         )
 
