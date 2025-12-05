@@ -196,8 +196,6 @@ class AdminStatsSerializer(serializers.Serializer):
     last_12_months_revenue = serializers.ListField()
     recent_appointments = serializers.ListField()
 
-
-
 class AdminLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
@@ -206,18 +204,14 @@ class AdminLoginSerializer(serializers.Serializer):
         email = attrs.get("email")
         password = attrs.get("password")
 
-        if email is None or password is None:
-            raise serializers.ValidationError("Email and password required")
+        if not email or not password:
+            raise serializers.ValidationError("Email and password are required")
 
-        user = authenticate(
-            request=self.context.get("request"),
-            email=email,   # 👈 Use email instead of username
-            password=password
-        )
+        from django.contrib.auth import authenticate
+        user = authenticate(request=self.context.get("request"), email=email, password=password)
 
         if not user:
             raise serializers.ValidationError("Invalid credentials")
-
         if not user.is_staff:
             raise serializers.ValidationError("You are not admin")
 
