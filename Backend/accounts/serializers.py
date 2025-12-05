@@ -69,31 +69,24 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
+        email = attrs.get("email")
+        password = attrs.get("password")
 
-        if email and password:
-            # Use the correct USERNAME_FIELD dynamically
-            user = authenticate(
-                request=self.context.get('request'),
-                **{User.USERNAME_FIELD: email},
-                password=password
-            )
+        user = authenticate(
+            request=self.context.get("request"),
+            email=email,
+            password=password
+        )
 
-            if not user:
-                raise serializers.ValidationError("Invalid credentials", code='authorization')
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
 
-            if not user.is_active:
-                raise serializers.ValidationError("User account is disabled", code='authorization')
+        if not user.is_active:
+            raise serializers.ValidationError("User account disabled")
 
-            if not user.is_staff:
-                raise serializers.ValidationError("User is not staff", code='authorization')
+        attrs["user"] = user
+        return attrs
 
-            attrs['user'] = user
-            return attrs
-        else:
-            raise serializers.ValidationError("Must include 'email' and 'password'", code='authorization')
-    
 # -------------------- DEPARTMENT SERIALIZER --------------------
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -202,3 +195,28 @@ class AdminStatsSerializer(serializers.Serializer):
     appointments_by_department = serializers.ListField()
     last_12_months_revenue = serializers.ListField()
     recent_appointments = serializers.ListField()
+
+
+
+class AdminLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        user = authenticate(
+            request=self.context.get("request"),
+            email=email,
+            password=password
+        )
+
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+
+        if not user.is_staff:
+            raise serializers.ValidationError("Not allowed — Admin only")
+
+        attrs["user"] = user
+        return attrs

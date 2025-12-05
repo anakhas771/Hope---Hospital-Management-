@@ -17,7 +17,7 @@ from .serializers import (
 RegisterSerializer, LoginSerializer, UserSerializer,
 ChangePasswordSerializer,
 DepartmentSerializer, DoctorSerializer, AppointmentSerializer,
-AdminStatsSerializer
+AdminStatsSerializer, AdminLoginSerializer
 )
 from .permissions import IsStaffOrSuperuser
 
@@ -42,26 +42,19 @@ class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
-
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data.get("user")
-            if not user:
-                return Response({"error": "Invalid credentials"}, status=401)
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
 
-            refresh = RefreshToken.for_user(user)
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
 
-            return Response({
-                "message": "Login successful",
-                "user": UserSerializer(user).data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }, status=200)
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
-
+        return Response({
+            "message": "Login successful",
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }, status=200)
 
 # -------------------- CHANGE PASSWORD --------------------
 
@@ -260,18 +253,17 @@ class UserViewSet(viewsets.ModelViewSet):
 # -------------------- ADMIN LOGIN --------------------
 
 class AdminLoginView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
+    serializer_class = AdminLoginSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
 
-        # You can create a token if using DRF token auth
-        # or just return user info
+        user = serializer.validated_data["user"]
+
         return Response({
             "email": user.email,
             "is_staff": user.is_staff,
             "is_superuser": user.is_superuser,
-        }, status=status.HTTP_200_OK)
+        }, status=200)
