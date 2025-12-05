@@ -7,9 +7,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
 from django.utils.timezone import now
+from django.contrib.auth import authenticate
 from django.utils.crypto import get_random_string
 from datetime import timedelta
-from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Department, Doctor, Appointment, UserPasswordResetToken
@@ -17,7 +17,7 @@ from .serializers import (
 RegisterSerializer, LoginSerializer, UserSerializer,
 ChangePasswordSerializer,
 DepartmentSerializer, DoctorSerializer, AppointmentSerializer,
-AdminStatsSerializer, AdminLoginSerializer
+AdminStatsSerializer,
 )
 from .permissions import IsStaffOrSuperuser
 
@@ -253,23 +253,28 @@ class UserViewSet(viewsets.ModelViewSet):
 # -------------------- ADMIN LOGIN --------------------
 
 class AdminLoginView(generics.GenericAPIView):
-    serializer_class = AdminLoginSerializer
-    permission_classes = [AllowAny]
-    parser_classes = [JSONParser, FormParser, MultiPartParser]  # 👈 IMPORTANT
+    permission_classes = []
 
     def post(self, request):
-        serializer = self.get_serializer(
-            data=request.data, 
-            context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
+        email = request.data.get("email")
+        password = request.data.get("password")
 
-        user = serializer.validated_data["user"]
+        user = authenticate(request, email=email, password=password)
+
+        if not user:
+            return Response({"error": "Invalid email or password"}, status=400)
+
+        if not user.is_staff:
+            return Response({"error": "You are not an admin"}, status=403)
+
+        refresh = RefreshToken.for_user(user)
 
         return Response({
-            "email": user.email,
-            "is_staff": user.is_staff,
-            "is_superuser": user.is_superuser,
-            "access": "dummy-admin-access-token",   # add real JWT here
-            "refresh": "dummy-admin-refresh-token"
-        }, status=200)
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": {
+                "email": user.email,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
+            }
+        })
