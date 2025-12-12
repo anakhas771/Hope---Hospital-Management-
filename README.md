@@ -53,7 +53,6 @@ Email notifications for confirmations and reminders.
 ![App Demo](assets/demo.gif)
 
 
-
 ## 🖼️ Screenshots
 
 <div align="center">
