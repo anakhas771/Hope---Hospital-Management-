@@ -36,7 +36,6 @@ Email notifications for confirmations and reminders.
 </div>
 
 
-
 ## 🏢 Used By
 
 | Organization | Purpose |
