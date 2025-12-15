@@ -77,4 +77,3 @@ Email notifications for confirmations and reminders.
     </tr>
   </table>
 </div>
-
