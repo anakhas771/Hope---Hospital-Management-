@@ -80,6 +80,3 @@ LOGGING = {
 # DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseStorage"
-import logging
-logging.error("FINAL DB USER = %s", os.environ.get("DATABASE_USER"))
-logging.error("FINAL DB HOST = %s", os.environ.get("DATABASE_HOST"))
