@@ -68,11 +68,11 @@ WSGI_APPLICATION = "backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", default="Hopedb"),
-        "USER": config("DB_USER", default="postgres"),
-        "PASSWORD": config("DB_PASSWORD", default="1234"),
-        "HOST": config("DB_HOST", default="127.0.0.1"),
-        "PORT": config("DB_PORT", default="5432"),
+        "NAME": config("DATABASE_NAME", default="postgres"),
+        "USER": config("DATABASE_USER", default="postgres"),
+        "PASSWORD": config("DATABASE_PASSWORD", default="1234"),
+        "HOST": config("DATABASE_HOST", default="127.0.0.1"),
+        "PORT": config("DATABASE_PORT", default="5432"),
     }
 }
 
@@ -153,5 +153,3 @@ SUPABASE_PUBLIC_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET
 DEFAULT_FILE_STORAGE = "backend.storage_backends.SupabaseStorage"
 
 
-# settings.py
-BACKEND_BASE_URL = "https://hope-backend-mvos.onrender.com"   # <-- VERY IMPORTANT
