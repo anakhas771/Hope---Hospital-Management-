@@ -49,8 +49,8 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ["DATABASE_URL"],
-        conn_max_age=600,
-        ssl_require=True,
+        conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", 600)),
+        ssl_require=os.environ.get("DB_SSL_REQUIRE", "True") == "True",
     )
 }
 
