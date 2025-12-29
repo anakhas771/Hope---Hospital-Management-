@@ -47,22 +47,21 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # -------------------- DATABASE (Render recommended) --------------------
 
-
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DATABASE_NAME"),
-        "USER": os.environ.get("DATABASE_USER"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-        "HOST": os.environ.get("DATABASE_HOST"),
-        "PORT": os.environ.get("DATABASE_PORT"),
+        "NAME": os.environ.get("DATABASE_NAME"),       # 'postgres'
+        "USER": os.environ.get("DATABASE_USER"),       # 'postgres.yhzihlvienuylynwviej'
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),  # 'FoqT34hWjer9qbsh'
+        "HOST": os.environ.get("DATABASE_HOST"),       # 'aws-1-ap-southeast-1.pooler.supabase.com'
+        "PORT": os.environ.get("DATABASE_PORT", 5432), 
         "OPTIONS": {
-            "sslmode": "require",
+            "sslmode": "require",  # Supabase requires SSL
         },
         "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", 600)),
     }
 }
+
 
 # -------------------- SECURITY PROXY --------------------
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
