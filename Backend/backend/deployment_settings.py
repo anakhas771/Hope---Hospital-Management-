@@ -46,20 +46,14 @@ if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # -------------------- DATABASE (Render recommended) --------------------
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-        "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", 600)),
-        "OPTIONS": {"sslmode": "require" if os.environ.get("DB_SSL_REQUIRE", "True") == "True" else "disable"},
-    }
+    "default": dj_database_url.config(
+        default=f"postgresql://{os.environ.get('DATABASE_USER')}:{os.environ.get('DATABASE_PASSWORD')}@{os.environ.get('DATABASE_HOST')}:{os.environ.get('DATABASE_PORT')}/{os.environ.get('DATABASE_NAME')}",
+        conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", 600)),
+        ssl_require=os.environ.get("DB_SSL_REQUIRE", "True") == "True",
+    )
 }
-
-
 # -------------------- SECURITY PROXY --------------------
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
