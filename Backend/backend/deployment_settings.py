@@ -60,7 +60,7 @@ DATABASES = {
         "OPTIONS": {
             "sslmode": "require",
         },
-        "CONN_MAX_AGE": 600,
+        "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", 600)),
     }
 }
 
