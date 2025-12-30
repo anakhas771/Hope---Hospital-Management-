@@ -10,14 +10,18 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", SECRET_KEY)  # fallback to base
 
 # Hostnames for Render
 RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-
-ALLOWED_HOSTS = [
-    host for host in [
-        RENDER_HOSTNAME,
-        "hope-backend-mvos.onrender.com",
-        "localhost",
-    ] if host
-] or ["*"]  # if none set, fallback to * (not ideal — set RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS = (
+    [
+        host for host in [
+            RENDER_HOSTNAME,
+            "hope-backend-mvos.onrender.com",
+            "localhost",
+        ]
+        if host
+    ]
+    if RENDER_HOSTNAME
+    else ["localhost"]
+)
 
 # -------------------- CSRF / CORS TRUST --------------------
 if RENDER_HOSTNAME:
@@ -49,7 +53,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
+        conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", 0)),
         ssl_require=True
     )
 }
