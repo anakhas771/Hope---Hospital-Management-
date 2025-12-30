@@ -65,9 +65,7 @@ class Department(models.Model):
 
 # -------------------- DOCTOR UPLOAD PATH --------------------
 def doctor_upload_path(instance, filename):
-    base, ext = os.path.splitext(filename)
-    timestamp = now().strftime("%Y%m%d%H%M%S")
-    return f"doctors/{base}_{timestamp}{ext}"
+    return f"doctors/{filename}"
 
 # -------------------- DOCTOR --------------------
 class Doctor(models.Model):
