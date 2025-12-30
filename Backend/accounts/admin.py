@@ -1,8 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.utils.html import format_html
 from .models import User, Department, Doctor, Appointment
 
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ("name", "department", "profile_image_tag")
+
+    def profile_image_tag(self, obj):
+        if obj.profile_image:
+            return format_html('<img src="{}" width="50" />', obj.profile_image.url)
+        return "-"
+    profile_image_tag.short_description = "Profile Image"
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
