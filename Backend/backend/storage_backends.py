@@ -9,7 +9,6 @@ from django.utils.deconstruct import deconstructible
 class SupabaseStorage(Storage):
     def _save(self, name, content):
         file_bytes = content.read()
-
         upload_url = f"{settings.SUPABASE_URL}/storage/v1/object/{settings.SUPABASE_BUCKET}/{name}"
 
         headers = {
@@ -18,12 +17,14 @@ class SupabaseStorage(Storage):
             "Content-Type": "application/octet-stream",
         }
 
-        res = requests.post(upload_url, data=file_bytes, headers=headers)
+        # Use PUT instead of POST
+        res = requests.put(upload_url, data=file_bytes, headers=headers)
 
         if res.status_code not in (200, 201):
             raise Exception(f"Supabase Upload Failed: {res.status_code} - {res.text}")
 
         return name
+
 
     def url(self, name):
         return f"{settings.SUPABASE_PUBLIC_URL}/{name}"

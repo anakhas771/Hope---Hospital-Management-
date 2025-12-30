@@ -3,7 +3,7 @@ import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
-from django.utils.timezone import now
+
 
 # -------------------- CUSTOM USER MANAGER --------------------
 class CustomUserManager(BaseUserManager):
