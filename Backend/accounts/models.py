@@ -71,15 +71,13 @@ def doctor_upload_path(instance, filename):
 class Doctor(models.Model):
     name = models.CharField(max_length=200)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
-    specialization = models.CharField(max_length=200)
+    specialization = models.CharField(max_length=200, db_index=True)
     education = models.CharField(max_length=200)
     experience = models.CharField(max_length=100)
     availability = models.CharField(max_length=200)
     rating = models.FloatField(default=0)
     patients_count = models.IntegerField(default=0)
     profile_image = models.ImageField(upload_to=doctor_upload_path, blank=True, null=True)
-
-    
 
     def __str__(self):
         return self.name
@@ -95,10 +93,10 @@ class Appointment(models.Model):
 
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="appointments")
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="appointments")
-    date_time = models.DateTimeField()
+    date_time = models.DateTimeField(db_index=True)
     notes = models.TextField(blank=True, null=True)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending", db_index=True)
 
     # Payment details
     payment_id = models.CharField(max_length=200, blank=True, null=True)
@@ -106,7 +104,7 @@ class Appointment(models.Model):
     payer_email = models.EmailField(blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.doctor.name} with {self.patient.email} at {self.date_time}"

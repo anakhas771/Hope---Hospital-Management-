@@ -63,6 +63,8 @@ const DoctorCard = ({ doctor }) => {
           <img
             src={profileImageUrl}
             alt={name}
+            loading="lazy"
+            decoding="async"
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
         ) : (

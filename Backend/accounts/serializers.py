@@ -98,6 +98,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 class DoctorSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
+    department_name = serializers.CharField(source="department.name", read_only=True, default="")
 
     class Meta:
         model = Doctor

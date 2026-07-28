@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
-import SettingsPage from "./pages/SettingsPage";
 
 // Theme Context Provider
 import { ThemeProvider } from "./context/ThemeContext";
@@ -24,33 +23,42 @@ import PageWrapper from "./components/PageWrapper";
 import AdminRoute from "./components/AdminRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AdminLayout from "./components/AdminLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-// Auth Pages
-import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
+// Lazy-loaded Auth Pages
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
 
-// Admin Pages
-import AdminDashboardPage from "./pages/AdminDashboardPage";
-import AdminLogin from "./pages/AdminLogin";
-import ManageDepartments from "./pages/ManageDepartments";
-import ManageDoctors from "./pages/ManageDoctors";
-import ManageAppointments from "./pages/ManageAppointments";
+// Lazy-loaded Admin Pages
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const ManageDepartments = lazy(() => import("./pages/ManageDepartments"));
+const ManageDoctors = lazy(() => import("./pages/ManageDoctors"));
+const ManageAppointments = lazy(() => import("./pages/ManageAppointments"));
 
-// User Pages
-import CardiologyPage from "./pages/CardiologyPage";
-import NeurologyPage from "./pages/NeurologyPage";
-import PediatricsPage from "./pages/PediatricsPage";
-import OrthopedicsPage from "./pages/OrthopedicsPage";
-import EmergencyPage from "./pages/EmergencyPage";
-import RadiologyPage from "./pages/RadiologyPage";
+// Lazy-loaded User & Department Pages
+const CardiologyPage = lazy(() => import("./pages/CardiologyPage"));
+const NeurologyPage = lazy(() => import("./pages/NeurologyPage"));
+const PediatricsPage = lazy(() => import("./pages/PediatricsPage"));
+const OrthopedicsPage = lazy(() => import("./pages/OrthopedicsPage"));
+const EmergencyPage = lazy(() => import("./pages/EmergencyPage"));
+const RadiologyPage = lazy(() => import("./pages/RadiologyPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 // Dashboard + Appointments
-import DashboardPage from "./pages/DashboardPage";
-import AppointmentPage from "./pages/AppointmentPage";
-import PaymentPage from "./pages/PaymentPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const AppointmentPage = lazy(() => import("./pages/AppointmentPage"));
+const PaymentPage = lazy(() => import("./pages/PaymentPage"));
+
+// Loading fallback spinner
+const PageFallback = () => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center">
+    <div className="w-12 h-12 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
+    <p className="mt-4 text-cyan-200 text-sm font-medium animate-pulse">Loading experience...</p>
+  </div>
+);
 
 // Glass Wrapper
 const GlassSection = ({ children }) => (
@@ -66,127 +74,129 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          {/* Landing Page */}
-          <Route
-            path="/"
-            element={
-              <>
-                <Navbar />
-                <GlassSection>
-                  <Hero />
-                </GlassSection>
-                <GlassSection>
-                  <Services />
-                </GlassSection>
-                <GlassSection>
-                  <Departments />
-                </GlassSection>
-                <Footer />
-              </>
-            }
-          />
-
-          {/* Auth Pages */}
-          {[
-            { path: "/login", component: LoginPage },
-            { path: "/signup", component: SignUpPage },
-            { path: "/forgot-password", component: ForgotPasswordPage },
-            { path: "/change-password", component: ChangePasswordPage },
-          ].map(({ path, component: Component }) => (
+      <Suspense fallback={<PageFallback />}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            {/* Landing Page */}
             <Route
-              key={path}
-              path={path}
+              path="/"
               element={
-                <div className="flex items-center justify-center min-h-screen px-6">
-                  <GlassSection>
-                    <Component />
-                  </GlassSection>
-                </div>
-              }
-            />
-          ))}
-
-          {/* Department Pages */}
-          {[
-            { path: "cardiology", component: CardiologyPage },
-            { path: "neurology", component: NeurologyPage },
-            { path: "pediatrics", component: PediatricsPage },
-            { path: "orthopedics", component: OrthopedicsPage },
-            { path: "emergency", component: EmergencyPage },
-            { path: "radiology", component: RadiologyPage },
-          ].map(({ path, component: Component }) => (
-            <Route
-              key={path}
-              path={`/departments/${path}`}
-              element={
-                <PageWrapper>
+                <>
                   <Navbar />
                   <GlassSection>
-                    <Component />
+                    <Hero />
+                  </GlassSection>
+                  <GlassSection>
+                    <Services />
+                  </GlassSection>
+                  <GlassSection>
+                    <Departments />
                   </GlassSection>
                   <Footer />
-                </PageWrapper>
+                </>
               }
             />
-          ))}
 
-          {/* Dashboard */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <PageWrapper>
-                  <Navbar />
-                  <DashboardPage /> {/* No GlassSection wrapper */}
-                  <Footer />
-                </PageWrapper>
-              </ProtectedRoute>
-            }
-          />
-          {/* User Settings */}
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <PageWrapper>
-                  <Navbar />
-                  <SettingsPage />
-                  <Footer />
-                </PageWrapper>
-              </ProtectedRoute>
-            }
-          />
-          {/* Appointments & Payment */}
-          <Route path="/appointment" element={<AppointmentPage />} />
-          <Route path="/payment" element={<PaymentPage />} />
+            {/* Auth Pages */}
+            {[
+              { path: "/login", component: LoginPage },
+              { path: "/signup", component: SignUpPage },
+              { path: "/forgot-password", component: ForgotPasswordPage },
+              { path: "/change-password", component: ChangePasswordPage },
+            ].map(({ path, component: Component }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <div className="flex items-center justify-center min-h-screen px-6">
+                    <GlassSection>
+                      <Component />
+                    </GlassSection>
+                  </div>
+                }
+              />
+            ))}
 
-          {/* Admin Login */}
-          <Route path="/admin-login" element={<AdminLogin />} />
+            {/* Department Pages */}
+            {[
+              { path: "cardiology", component: CardiologyPage },
+              { path: "neurology", component: NeurologyPage },
+              { path: "pediatrics", component: PediatricsPage },
+              { path: "orthopedics", component: OrthopedicsPage },
+              { path: "emergency", component: EmergencyPage },
+              { path: "radiology", component: RadiologyPage },
+            ].map(({ path, component: Component }) => (
+              <Route
+                key={path}
+                path={`/departments/${path}`}
+                element={
+                  <PageWrapper>
+                    <Navbar />
+                    <GlassSection>
+                      <Component />
+                    </GlassSection>
+                    <Footer />
+                  </PageWrapper>
+                }
+              />
+            ))}
 
-          {/* Admin Panel */}
-          <Route
-            path="/admin/*"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
-            <Route index element={<AdminDashboardPage />} />
-            <Route path="departments" element={<ManageDepartments />} />
-            <Route path="doctors" element={<ManageDoctors />} />
-            <Route path="appointments" element={<ManageAppointments />} />
-          </Route>
+            {/* Dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <Navbar />
+                    <DashboardPage />
+                    <Footer />
+                  </PageWrapper>
+                </ProtectedRoute>
+              }
+            />
+            {/* User Settings */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <Navbar />
+                    <SettingsPage />
+                    <Footer />
+                  </PageWrapper>
+                </ProtectedRoute>
+              }
+            />
+            {/* Appointments & Payment */}
+            <Route path="/appointment" element={<AppointmentPage />} />
+            <Route path="/payment" element={<PaymentPage />} />
 
-          {/* Redirect old admin path */}
-          <Route
-            path="/admin-dashboard"
-            element={<Navigate to="/admin" replace />}
-          />
-        </Routes>
-      </AnimatePresence>
+            {/* Admin Login */}
+            <Route path="/admin-login" element={<AdminLogin />} />
+
+            {/* Admin Panel */}
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              }
+            >
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="departments" element={<ManageDepartments />} />
+              <Route path="doctors" element={<ManageDoctors />} />
+              <Route path="appointments" element={<ManageAppointments />} />
+            </Route>
+
+            {/* Redirect old admin path */}
+            <Route
+              path="/admin-dashboard"
+              element={<Navigate to="/admin" replace />}
+            />
+          </Routes>
+        </AnimatePresence>
+      </Suspense>
     </div>
   );
 }
