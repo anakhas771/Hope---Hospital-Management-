@@ -108,6 +108,10 @@ class DoctorSerializer(serializers.ModelSerializer):
         if not obj.profile_image:
             return None
 
+        img_str = str(obj.profile_image)
+        if img_str.startswith("http://") or img_str.startswith("https://"):
+            return img_str
+
         return f"{settings.SUPABASE_PUBLIC_URL}/{obj.profile_image.name}"
 
 

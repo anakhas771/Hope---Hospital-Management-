@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const DoctorCard = ({ doctor }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = React.useState(false);
 
   const {
     id,
@@ -59,12 +60,13 @@ const DoctorCard = ({ doctor }) => {
     >
       {/* Top Section */}
       <div className="flex items-center gap-4">
-        {profileImageUrl ? (
+        {profileImageUrl && !imageError ? (
           <img
             src={profileImageUrl}
             alt={name}
             loading="lazy"
             decoding="async"
+            onError={() => setImageError(true)}
             className="w-20 h-20 rounded-full object-cover border border-white/30"
           />
         ) : (

@@ -41,7 +41,18 @@ const DepartmentsPage = () => {
       </h2>
 
       {loading ? (
-        <p className="text-center text-gray-300">Loading doctors...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 animate-pulse flex flex-col justify-between h-[280px]">
+              <div className="w-20 h-20 rounded-full bg-white/20"></div>
+              <div className="space-y-2 mt-4">
+                <div className="h-5 bg-white/20 rounded w-3/4"></div>
+                <div className="h-4 bg-white/15 rounded w-1/2"></div>
+              </div>
+              <div className="h-10 bg-white/20 rounded-full mt-4"></div>
+            </div>
+          ))}
+        </div>
       ) : error ? (
         <p className="text-center text-red-400">{error}</p>
       ) : doctors.length ? (
