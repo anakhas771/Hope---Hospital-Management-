@@ -62,8 +62,8 @@ const PageFallback = () => (
 
 // Glass Wrapper
 const GlassSection = ({ children }) => (
-  <div className="px-6 py-10">
-    <div className="glass-card p-8 space-y-6 hover:backdrop-blur-lg transition-all duration-300">
+  <div className="px-4 md:px-8 py-8 max-w-7xl mx-auto">
+    <div className="glass-card glass-card-hover p-6 md:p-10 space-y-6">
       {children}
     </div>
   </div>
@@ -73,7 +73,11 @@ function AppContent() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-blue-800 relative text-white overflow-hidden">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.18),rgba(255,255,255,0))] relative text-slate-100 overflow-hidden font-sans">
+      {/* Background Ambient Orbs */}
+      <div className="absolute top-1/4 -left-48 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none ambient-glow"></div>
+      <div className="absolute bottom-1/3 -right-48 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none ambient-glow" style={{ animationDelay: '4s' }}></div>
+
       <Suspense fallback={<PageFallback />}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

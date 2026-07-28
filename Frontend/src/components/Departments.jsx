@@ -1,15 +1,14 @@
 import React from "react";
-/* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const departments = [
-  { name: "Cardiology", icon: "❤️", description: "Heart care specialists" },
-  { name: "Neurology", icon: "🧠", description: "Brain & nervous system" },
-  { name: "Pediatrics", icon: "👶", description: "Child health experts" },
-  { name: "Orthopedics", icon: "🦴", description: "Bone & joint care" },
-  { name: "Emergency", icon: "🚑", description: "24/7 emergency care" },
-  { name: "Radiology", icon: "🩻", description: "Imaging and diagnostics" },
+  { name: "Cardiology", icon: "❤️", description: "Comprehensive heart health & vascular care", color: "from-rose-500/20 to-pink-500/10" },
+  { name: "Neurology", icon: "🧠", description: "Advanced brain & nervous system treatments", color: "from-indigo-500/20 to-purple-500/10" },
+  { name: "Pediatrics", icon: "👶", description: "Compassionate child healthcare specialists", color: "from-amber-500/20 to-yellow-500/10" },
+  { name: "Orthopedics", icon: "🦴", description: "Expert bone, joint & spinal surgical care", color: "from-cyan-500/20 to-blue-500/10" },
+  { name: "Emergency", icon: "🚑", description: "24/7 immediate trauma & critical care response", color: "from-red-500/20 to-rose-600/10" },
+  { name: "Radiology", icon: "🩻", description: "High-precision MRI, CT & diagnostic imaging", color: "from-emerald-500/20 to-teal-500/10" },
 ];
 
 const cardVariants = {
@@ -21,40 +20,49 @@ const Departments = () => {
   const navigate = useNavigate();
 
   const handleCardClick = (deptName) => {
-    // Directly navigate without checking for user login
     navigate(`/departments/${deptName.toLowerCase()}`);
   };
 
   return (
-    <section id="departments">
+    <section id="departments" className="py-4">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-white mb-2">Our Departments</h2>
-        <p className="text-white/80">Providing specialized care across various medical fields</p>
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-3 font-heading tracking-tight">
+          Specialized <span className="text-cyan-400">Departments</span>
+        </h2>
+        <p className="text-slate-300 text-base md:text-lg max-w-xl mx-auto font-sans">
+          Delivering multidisciplinary clinical excellence with state-of-the-art facilities
+        </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8 px-6 md:px-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {departments.map((dept, index) => (
           <motion.div
             key={index}
-            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 flex flex-col items-center text-center shadow-lg shadow-white/10 hover:shadow-blue-400/40 cursor-pointer"
+            className={`glass-card glass-card-hover bg-gradient-to-br ${dept.color} p-7 flex flex-col items-center text-center cursor-pointer group relative overflow-hidden`}
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ delay: index * 0.08 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => handleCardClick(dept.name)}
           >
             <motion.div
-              className="text-5xl mb-4"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="text-5xl mb-4 p-4 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform shadow-inner"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", delay: index * 0.2 }}
             >
               {dept.icon}
             </motion.div>
-            <h3 className="text-xl font-semibold text-white mb-2">{dept.name}</h3>
-            <p className="text-white/80">{dept.description}</p>
+            <h3 className="text-xl font-bold text-white mb-2 font-heading tracking-wide group-hover:text-cyan-300 transition-colors">
+              {dept.name}
+            </h3>
+            <p className="text-slate-300 text-sm leading-relaxed">{dept.description}</p>
+            
+            <div className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 group-hover:translate-x-1 transition-transform">
+              View Department & Doctors &rarr;
+            </div>
           </motion.div>
         ))}
       </div>
